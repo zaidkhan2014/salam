@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
+import { UserProfileDetailSections } from '@/components/users/UserProfileDetailSections'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAdminUserDetail } from '@/hooks/api/useAdminUsers'
@@ -85,51 +86,8 @@ export default function UserDetailPage() {
             <CardHeader>
               <CardTitle>Nested Profile Snapshot</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <ProfileSection
-                title="Basic Details"
-                rows={[
-                  ['Bio', profile?.bio ?? '--'],
-                  ['Created At', formatDateTime(profile?.createdAt)],
-                  ['Verified Profile', profile?.verifiedProfile ? 'Yes' : 'No'],
-                  ['Profile %', profile?.profileCreationPercentage?.toString() ?? '--'],
-                  ['Bio Moderation', profile?.bioModerationStatus ?? '--'],
-                  ['Bio Moderated At', formatDateTime(profile?.bioModeratedAt)],
-                ]}
-              />
-              <ProfileSection
-                title="Career & Family"
-                rows={[
-                  ['Profession', profile?.careerEducation?.profession ?? '--'],
-                  ['Education', profile?.careerEducation?.education ?? '--'],
-                  ['Industry', profile?.careerEducation?.industry ?? '--'],
-                  ['Family Type', profile?.family?.familyType ?? '--'],
-                  ['Family Status', profile?.family?.familyStatus ?? '--'],
-                  ['Ethnicity', profile?.basicDetails?.ethnicity ?? '--'],
-                ]}
-              />
-              <ProfileSection
-                title="Faith & Lifestyle"
-                rows={[
-                  ['Sect', profile?.faithPractice?.sect ?? '--'],
-                  ['Caste', profile?.faithPractice?.caste ?? '--'],
-                  ['Religious Practice', profile?.faithPractice?.religiousPractice ?? '--'],
-                  ['Islamic Dress', profile?.faithPractice?.islamicDress ?? '--'],
-                  ['Smoke', profile?.health?.smoke ?? '--'],
-                  ['Alcohol', profile?.health?.alcohol ?? '--'],
-                ]}
-              />
-              <ProfileSection
-                title="Media & Preferences"
-                rows={[
-                  ['Gallery Visibility', profile?.mediaGallery?.visibility ?? '--'],
-                  ['Media Items', `${profile?.mediaGallery?.items?.length ?? 0}`],
-                  ['Approved Photos', `${profile?.approvedPhotoCount ?? 0}`],
-                  ['Partner Countries', (profile?.partnerPreferences?.country ?? []).join(', ') || '--'],
-                  ['Partner Sect', (profile?.partnerPreferences?.sect ?? []).join(', ') || '--'],
-                  ['Last Seen', formatDateTime(profile?.lastSeen)],
-                ]}
-              />
+            <CardContent>
+              <UserProfileDetailSections profile={profile} />
             </CardContent>
           </Card>
           <Card className="lg:col-span-2">
@@ -162,18 +120,3 @@ function Row({ label, value }: { label: string; value: ReactNode }) {
   )
 }
 
-function ProfileSection({ title, rows }: { title: string; rows: Array<[string, string]> }) {
-  return (
-    <div className="rounded-lg border border-slate-200 p-3">
-      <p className="mb-2 text-sm font-semibold text-slate-900">{title}</p>
-      <div className="space-y-2 text-sm">
-        {rows.map(([label, value]) => (
-          <div key={`${title}-${label}`} className="flex items-start justify-between gap-3 border-b border-slate-100 pb-1">
-            <span className="text-slate-500">{label}</span>
-            <span className="max-w-[60%] text-right font-medium text-slate-900">{value || '--'}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
@@ -9,7 +9,13 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAdminSalesLeads, useAdminSalesSummary } from '@/hooks/api/useAdminSales'
-import type { AccountStatus, AdminSalesStatus, ProfileStatus } from '@/api/types'
+import type { AdminSalesStatus } from '@/api/types'
+import {
+  SALES_LIST_SEARCH_STORAGE_KEY,
+  parseSalesListSearchParams,
+  toSalesListSearchParams,
+  type SalesListUrlState,
+} from '@/pages/sales/salesListSearchParams'
 import { routes } from '@/router/paths'
 import { toUtcIso } from '@/utils/date'
 import { formatCompactNumber, formatDateTime } from '@/utils/format'
@@ -25,36 +31,60 @@ const salesStatuses = [
   'NOT_INTERESTED',
 ]
 
-type SalesAccountFilter = AccountStatus | 'ANY'
-type SalesProfileFilter = ProfileStatus | 'ANY'
-
 export default function SalesPage() {
-  const [start, setStart] = useState('')
-  const [end, setEnd] = useState('')
-  const [status, setStatus] = useState<'ALL' | AdminSalesStatus>('ALL')
-  const [followUpStart, setFollowUpStart] = useState('')
-  const [followUpEnd, setFollowUpEnd] = useState('')
-  const [search, setSearch] = useState('')
-  const [accountStatus, setAccountStatus] = useState<SalesAccountFilter>('ACTIVE')
-  const [profileStatus, setProfileStatus] = useState<SalesProfileFilter>('APPROVED')
-  const [genderInput, setGenderInput] = useState('')
-  const [subscribedTri, setSubscribedTri] = useState<'' | 'true' | 'false'>('')
-  const [verifiedTri, setVerifiedTri] = useState<'' | 'true' | 'false'>('')
-  const [page, setPage] = useState(0)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const parsed = useMemo(() => parseSalesListSearchParams(searchParams), [searchParams])
+  const didHydrateFromStorageRef = useRef(false)
+
+  const setFilters = useCallback(
+    (patch: Partial<SalesListUrlState>) => {
+      const next = { ...parsed, ...patch }
+      setSearchParams(toSalesListSearchParams(next), { replace: true })
+    },
+    [parsed, setSearchParams],
+  )
+
+  useEffect(() => {
+    if (location.pathname !== routes.sales) return
+
+    const spStr = searchParams.toString()
+
+    if (!spStr && !didHydrateFromStorageRef.current) {
+      let stored: string | null = null
+      try {
+        stored = sessionStorage.getItem(SALES_LIST_SEARCH_STORAGE_KEY)
+      } catch {
+        /* ignore */
+      }
+      if (stored) {
+        didHydrateFromStorageRef.current = true
+        navigate({ pathname: routes.sales, search: stored }, { replace: true })
+        return
+      }
+    }
+
+    try {
+      sessionStorage.setItem(SALES_LIST_SEARCH_STORAGE_KEY, spStr)
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, [location.pathname, navigate, searchParams])
 
   const filters = {
-    start: toUtcIso(start),
-    end: toUtcIso(end),
-    status: status || 'ALL',
-    followUpStart: toUtcIso(followUpStart),
-    followUpEnd: toUtcIso(followUpEnd),
-    query: search || undefined,
-    accountStatus: accountStatus === 'ANY' ? undefined : accountStatus,
-    profileStatus: profileStatus === 'ANY' ? undefined : profileStatus,
-    gender: genderInput.trim() || undefined,
-    subscribed: subscribedTri === '' ? undefined : subscribedTri === 'true',
-    verifiedProfile: verifiedTri === '' ? undefined : verifiedTri === 'true',
-    page,
+    start: toUtcIso(parsed.start),
+    end: toUtcIso(parsed.end),
+    status: parsed.status || 'ALL',
+    followUpStart: toUtcIso(parsed.followUpStart),
+    followUpEnd: toUtcIso(parsed.followUpEnd),
+    query: parsed.query.trim() || undefined,
+    accountStatus: parsed.accountStatus === 'ANY' ? undefined : parsed.accountStatus,
+    profileStatus: parsed.profileStatus === 'ANY' ? undefined : parsed.profileStatus,
+    gender: parsed.gender.trim() || undefined,
+    subscribed: parsed.subscribedTri === '' ? undefined : parsed.subscribedTri === 'true',
+    verifiedProfile: parsed.verifiedTri === '' ? undefined : parsed.verifiedTri === 'true',
+    page: parsed.page,
     size: PAGE_SIZE,
   } as const
 
@@ -67,7 +97,7 @@ export default function SalesPage() {
   }, [leadsQuery.data?.total])
 
   const filteredTotalIsPageBound =
-    status !== 'ALL' || Boolean(filters.followUpStart) || Boolean(filters.followUpEnd)
+    parsed.status !== 'ALL' || Boolean(filters.followUpStart) || Boolean(filters.followUpEnd)
 
   return (
     <section className="space-y-4">
@@ -87,6 +117,9 @@ export default function SalesPage() {
             APPROVED</strong> so deleted, banned, or non-approved profiles stay out of the call queue—set Account or
             Profile to <strong>Any</strong> to widen the list.
           </p>
+          <p className="mt-2 text-xs text-slate-500">
+            Filters and page are kept in the URL so you can return from a lead without losing them.
+          </p>
         </CardHeader>
         <CardContent className="space-y-6 pt-0">
           <div className="space-y-2">
@@ -102,8 +135,8 @@ export default function SalesPage() {
                 <Input
                   id="sales-filter-profile-start"
                   type="datetime-local"
-                  value={start}
-                  onChange={(event) => setStart(event.target.value)}
+                  value={parsed.start}
+                  onChange={(event) => setFilters({ start: event.target.value, page: 0 })}
                   aria-label="Profile created from"
                 />
               </label>
@@ -112,8 +145,8 @@ export default function SalesPage() {
                 <Input
                   id="sales-filter-profile-end"
                   type="datetime-local"
-                  value={end}
-                  onChange={(event) => setEnd(event.target.value)}
+                  value={parsed.end}
+                  onChange={(event) => setFilters({ end: event.target.value, page: 0 })}
                   aria-label="Profile created to"
                 />
               </label>
@@ -132,8 +165,8 @@ export default function SalesPage() {
                 <Input
                   id="sales-filter-followup-start"
                   type="datetime-local"
-                  value={followUpStart}
-                  onChange={(event) => setFollowUpStart(event.target.value)}
+                  value={parsed.followUpStart}
+                  onChange={(event) => setFilters({ followUpStart: event.target.value, page: 0 })}
                   aria-label="Follow-up from"
                 />
               </label>
@@ -142,8 +175,8 @@ export default function SalesPage() {
                 <Input
                   id="sales-filter-followup-end"
                   type="datetime-local"
-                  value={followUpEnd}
-                  onChange={(event) => setFollowUpEnd(event.target.value)}
+                  value={parsed.followUpEnd}
+                  onChange={(event) => setFilters({ followUpEnd: event.target.value, page: 0 })}
                   aria-label="Follow-up to"
                 />
               </label>
@@ -161,10 +194,12 @@ export default function SalesPage() {
                 <span className="mb-1 block font-medium text-slate-800">Account status</span>
                 <Select
                   id="sales-filter-account-status"
-                  value={accountStatus}
+                  value={parsed.accountStatus}
                   onChange={(event) => {
-                    setAccountStatus(event.target.value as SalesAccountFilter)
-                    setPage(0)
+                    setFilters({
+                      accountStatus: event.target.value as SalesListUrlState['accountStatus'],
+                      page: 0,
+                    })
                   }}
                   aria-label="Filter by account status"
                 >
@@ -178,10 +213,12 @@ export default function SalesPage() {
                 <span className="mb-1 block font-medium text-slate-800">Profile status</span>
                 <Select
                   id="sales-filter-profile-status"
-                  value={profileStatus}
+                  value={parsed.profileStatus}
                   onChange={(event) => {
-                    setProfileStatus(event.target.value as SalesProfileFilter)
-                    setPage(0)
+                    setFilters({
+                      profileStatus: event.target.value as SalesListUrlState['profileStatus'],
+                      page: 0,
+                    })
                   }}
                   aria-label="Filter by profile moderation status"
                 >
@@ -196,11 +233,8 @@ export default function SalesPage() {
                 <Input
                   id="sales-filter-gender"
                   placeholder="e.g. Male"
-                  value={genderInput}
-                  onChange={(event) => {
-                    setGenderInput(event.target.value)
-                    setPage(0)
-                  }}
+                  value={parsed.gender}
+                  onChange={(event) => setFilters({ gender: event.target.value, page: 0 })}
                   aria-label="Filter by gender exact match"
                 />
               </label>
@@ -208,10 +242,12 @@ export default function SalesPage() {
                 <span className="mb-1 block font-medium text-slate-800">Subscribed</span>
                 <Select
                   id="sales-filter-subscribed"
-                  value={subscribedTri}
+                  value={parsed.subscribedTri}
                   onChange={(event) => {
-                    setSubscribedTri(event.target.value as '' | 'true' | 'false')
-                    setPage(0)
+                    setFilters({
+                      subscribedTri: event.target.value as SalesListUrlState['subscribedTri'],
+                      page: 0,
+                    })
                   }}
                   aria-label="Filter by subscribed"
                 >
@@ -224,10 +260,12 @@ export default function SalesPage() {
                 <span className="mb-1 block font-medium text-slate-800">Verified profile</span>
                 <Select
                   id="sales-filter-verified"
-                  value={verifiedTri}
+                  value={parsed.verifiedTri}
                   onChange={(event) => {
-                    setVerifiedTri(event.target.value as '' | 'true' | 'false')
-                    setPage(0)
+                    setFilters({
+                      verifiedTri: event.target.value as SalesListUrlState['verifiedTri'],
+                      page: 0,
+                    })
                   }}
                   aria-label="Filter by verified profile"
                 >
@@ -244,10 +282,12 @@ export default function SalesPage() {
               <span className="mb-1 block font-medium text-slate-800">Sales status</span>
               <Select
                 id="sales-filter-status"
-                value={status}
+                value={parsed.status}
                 onChange={(event) => {
-                  setStatus(event.target.value as 'ALL' | AdminSalesStatus)
-                  setPage(0)
+                  setFilters({
+                    status: event.target.value as 'ALL' | AdminSalesStatus,
+                    page: 0,
+                  })
                 }}
                 aria-label="Filter by sales status"
               >
@@ -263,11 +303,8 @@ export default function SalesPage() {
               <Input
                 id="sales-filter-search"
                 placeholder="User ID, member ID, phone, or name"
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value)
-                  setPage(0)
-                }}
+                value={parsed.query}
+                onChange={(event) => setFilters({ query: event.target.value, page: 0 })}
                 aria-label="Search leads by user ID, member ID, phone, or name"
               />
             </label>
@@ -346,7 +383,11 @@ export default function SalesPage() {
                     <td className="px-3 py-2">{formatDateTime(lead.followUpAt)}</td>
                     <td className="px-3 py-2">{formatDateTime(lead.lastCalledAt)}</td>
                     <td className="px-3 py-2">
-                      <Link className="underline" to={routes.salesLeadDetail(lead.userId)}>
+                      <Link
+                        className="underline"
+                        to={routes.salesLeadDetail(lead.userId)}
+                        state={{ salesListSearch: location.search }}
+                      >
                         Manage
                       </Link>
                     </td>
@@ -361,7 +402,7 @@ export default function SalesPage() {
       <div className="flex items-center justify-between">
         <div className="text-sm text-slate-500">
           <p>
-            Page {page + 1} of {totalPages}
+            Page {parsed.page + 1} of {totalPages}
           </p>
           {filteredTotalIsPageBound ? (
             <p className="text-xs">
@@ -373,16 +414,16 @@ export default function SalesPage() {
           <button
             type="button"
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:opacity-50"
-            disabled={page === 0}
-            onClick={() => setPage((current) => current - 1)}
+            disabled={parsed.page === 0}
+            onClick={() => setFilters({ page: Math.max(0, parsed.page - 1) })}
           >
             Previous
           </button>
           <button
             type="button"
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:opacity-50"
-            disabled={page + 1 >= totalPages}
-            onClick={() => setPage((current) => current + 1)}
+            disabled={parsed.page + 1 >= totalPages}
+            onClick={() => setFilters({ page: parsed.page + 1 })}
           >
             Next
           </button>

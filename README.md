@@ -27,6 +27,10 @@ React + TypeScript admin panel for `/api/admin` endpoints described in the API c
   - Example: `https://example.com`
   - Leave empty if frontend and API are served from the same origin.
 
+## Deployment (static / Vercel)
+
+This app is a SPA: routes like `/sales`, `/sales/:userId`, and `/users/:userId` must fall back to `index.html` on the host. The repo includes [`vercel.json`](vercel.json) with a catch-all rewrite so deep links and hard refresh do not return 404. For other hosts (e.g. Netlify), add the equivalent “single-page app” redirect rules.
+
 ## Scripts
 
 - `npm run dev` - start dev server
