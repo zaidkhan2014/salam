@@ -34,7 +34,7 @@ export function UserProfileDetailSections({ profile }: { profile: UserProfile | 
   const pp = profile.partnerPreferences
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid min-w-0 gap-4 md:grid-cols-2">
       <ProfileFieldsBlock
         title="Profile record"
         rows={[
@@ -192,13 +192,18 @@ function partnerPreferenceRows(pp: PartnerPreferences | null | undefined): Array
 
 function ProfileFieldsBlock({ title, rows }: { title: string; rows: Array<[string, string | ReactNode]> }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-3">
+    <div className="min-w-0 rounded-lg border border-slate-200 p-3">
       <p className="mb-2 text-sm font-semibold text-slate-900">{title}</p>
       <div className="space-y-2 text-sm">
         {rows.map(([label, value]) => (
-          <div key={`${title}-${label}`} className="flex items-start justify-between gap-3 border-b border-slate-100 pb-1">
-            <span className="text-slate-500">{label}</span>
-            <span className="max-w-[60%] break-words text-right font-medium text-slate-900">{value || '--'}</span>
+          <div
+            key={`${title}-${label}`}
+            className="flex min-w-0 flex-col gap-1 border-b border-slate-100 pb-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
+          >
+            <span className="min-w-0 shrink-0 text-slate-500">{label}</span>
+            <span className="min-w-0 break-words text-left font-medium text-slate-900 sm:max-w-[65%] sm:text-right">
+              {value || '--'}
+            </span>
           </div>
         ))}
       </div>

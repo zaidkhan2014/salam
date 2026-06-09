@@ -74,7 +74,7 @@ export default function SalesLeadDetailPage() {
   const photoAlt = displayName ? `Profile photo for ${displayName}` : 'Profile photo'
 
   return (
-    <section className="space-y-4">
+    <section className="min-w-0 space-y-4">
       <PageHeader title="Sales Lead Detail" description={`Manage sales lead for ${userId ?? '--'}.`} />
       <Link to={{ pathname: routes.sales, search: backSearch }} className="text-sm text-slate-700 underline">
         Back to sales
@@ -84,9 +84,9 @@ export default function SalesLeadDetailPage() {
       {query.isLoading ? <Skeleton className="h-80 w-full" /> : null}
 
       {query.data ? (
-        <div className="space-y-4">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-            <div className="mx-auto w-full max-w-md shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 lg:mx-0 lg:w-80">
+        <div className="min-w-0 space-y-4">
+          <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-start">
+            <div className="mx-auto w-full max-w-full min-w-0 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:max-w-md lg:mx-0 lg:w-80">
               <div className="aspect-square w-full">
                 {mainImageUrl ? (
                   <img src={mainImageUrl} alt={photoAlt} className="h-full w-full object-cover" loading="lazy" />
@@ -135,7 +135,7 @@ export default function SalesLeadDetailPage() {
             </div>
           </div>
 
-          <Card>
+          <Card className="min-w-0">
             <CardHeader>
               <CardTitle>Full profile</CardTitle>
             </CardHeader>
@@ -257,9 +257,11 @@ export default function SalesLeadDetailPage() {
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-2 text-sm">
-      <span className="text-slate-500">{label}</span>
-      <span className="font-medium text-slate-900">{value || '--'}</span>
+    <div className="flex min-w-0 flex-col gap-1 border-b border-slate-100 pb-2 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <span className="min-w-0 shrink-0 text-slate-500">{label}</span>
+      <span className="min-w-0 break-words text-left font-medium text-slate-900 sm:max-w-[65%] sm:text-right">
+        {value || '--'}
+      </span>
     </div>
   )
 }

@@ -46,8 +46,8 @@ export function AppShell() {
   const { logout } = useAuth()
 
   return (
-    <div className="min-h-screen bg-slate-50 md:grid md:grid-cols-[240px_1fr]">
-      <aside className="sticky top-0 z-10 flex h-fit items-center justify-between border-b border-slate-200 bg-white p-3 md:h-screen md:flex-col md:items-stretch md:justify-start md:border-b-0 md:border-r md:p-4">
+    <div className="min-h-screen min-w-0 bg-slate-50 md:grid md:grid-cols-[240px_minmax(0,1fr)]">
+      <aside className="sticky top-0 z-10 flex h-fit min-w-0 items-center justify-between border-b border-slate-200 bg-white p-3 md:h-screen md:flex-col md:items-stretch md:justify-start md:border-b-0 md:border-r md:p-4">
         <div>
           <h2 className="mb-4 text-lg font-semibold text-slate-900">Admin Panel</h2>
           <nav className="hidden space-y-1 md:block">
@@ -80,8 +80,8 @@ export function AppShell() {
           Logout
         </button>
       </aside>
-      <main className="p-4 md:p-6">
-        <div className="mx-auto max-w-7xl">
+      <main className="min-w-0 p-4 md:p-6">
+        <div className="mx-auto w-full min-w-0 max-w-7xl">
           <div className="mb-4 flex gap-2 overflow-x-auto md:hidden">
             {links.map((item) => (
               <NavLink

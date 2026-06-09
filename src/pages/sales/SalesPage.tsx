@@ -100,10 +100,10 @@ export default function SalesPage() {
     parsed.status !== 'ALL' || Boolean(filters.followUpStart) || Boolean(filters.followUpEnd)
 
   return (
-    <section className="space-y-4">
+    <section className="min-w-0 space-y-4">
       <PageHeader title="Sales" description="Manage lead pipeline, follow-ups, and sales outcomes." />
 
-      <Card>
+      <Card className="min-w-0">
         <CardHeader>
           <CardTitle>Filters</CardTitle>
           <p className="mt-1 text-sm text-slate-600">
@@ -121,7 +121,7 @@ export default function SalesPage() {
             Filters and page are kept in the URL so you can return from a lead without losing them.
           </p>
         </CardHeader>
-        <CardContent className="space-y-6 pt-0">
+        <CardContent className="min-w-0 space-y-6 overflow-x-auto pt-0">
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-slate-900">Profile created</h4>
             <p className="text-xs text-slate-600">
@@ -129,8 +129,8 @@ export default function SalesPage() {
               falls in this window. Summary totals use these same dates. Leave both empty to list all leads; summary may
               then follow server defaults, so pick a range if KPIs and the table should match.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm text-slate-600">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">From</span>
                 <Input
                   id="sales-filter-profile-start"
@@ -140,7 +140,7 @@ export default function SalesPage() {
                   aria-label="Profile created from"
                 />
               </label>
-              <label className="block text-sm text-slate-600">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">To</span>
                 <Input
                   id="sales-filter-profile-end"
@@ -159,8 +159,8 @@ export default function SalesPage() {
               Optional. Filters the <strong>leads table only</strong> by follow-up time. If either bound is set, leads
               with no follow-up date are hidden. Does not change the summary KPI cards.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm text-slate-600">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">From</span>
                 <Input
                   id="sales-filter-followup-start"
@@ -170,7 +170,7 @@ export default function SalesPage() {
                   aria-label="Follow-up from"
                 />
               </label>
-              <label className="block text-sm text-slate-600">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">To</span>
                 <Input
                   id="sales-filter-followup-end"
@@ -189,8 +189,8 @@ export default function SalesPage() {
               Optional refinements on profile data. Gender must match the stored value exactly (trimmed). Subscribed
               and Verified profile use Yes/No only when you need to narrow results.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <label className="block text-sm text-slate-600">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Account status</span>
                 <Select
                   id="sales-filter-account-status"
@@ -209,7 +209,7 @@ export default function SalesPage() {
                   <option value="BANNED">Banned</option>
                 </Select>
               </label>
-              <label className="block text-sm text-slate-600">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Profile status</span>
                 <Select
                   id="sales-filter-profile-status"
@@ -228,7 +228,7 @@ export default function SalesPage() {
                   <option value="REJECTED">Rejected</option>
                 </Select>
               </label>
-              <label className="block text-sm text-slate-600 sm:col-span-2 lg:col-span-1">
+              <label className="block min-w-0 text-sm text-slate-600 sm:col-span-2 lg:col-span-1">
                 <span className="mb-1 block font-medium text-slate-800">Gender (exact match)</span>
                 <Input
                   id="sales-filter-gender"
@@ -238,7 +238,7 @@ export default function SalesPage() {
                   aria-label="Filter by gender exact match"
                 />
               </label>
-              <label className="block text-sm text-slate-600">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Subscribed</span>
                 <Select
                   id="sales-filter-subscribed"
@@ -256,7 +256,7 @@ export default function SalesPage() {
                   <option value="false">No</option>
                 </Select>
               </label>
-              <label className="block text-sm text-slate-600">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Verified profile</span>
                 <Select
                   id="sales-filter-verified"
@@ -277,8 +277,8 @@ export default function SalesPage() {
             </div>
           </div>
 
-          <div className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
-            <label className="block text-sm text-slate-600">
+          <div className="grid min-w-0 grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
+            <label className="block min-w-0 text-sm text-slate-600">
               <span className="mb-1 block font-medium text-slate-800">Sales status</span>
               <Select
                 id="sales-filter-status"
@@ -298,7 +298,7 @@ export default function SalesPage() {
                 ))}
               </Select>
             </label>
-            <label className="block text-sm text-slate-600">
+            <label className="block min-w-0 text-sm text-slate-600">
               <span className="mb-1 block font-medium text-slate-800">Search</span>
               <Input
                 id="sales-filter-search"
