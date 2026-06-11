@@ -26,6 +26,9 @@ export interface SalesListUrlState {
   accountStatus: AccountStatus | 'ANY'
   profileStatus: ProfileStatus | 'ANY'
   gender: string
+  /** Raw string from URL; API only receives 1900–2100 integer when valid digits */
+  birthYear: string
+  maritalStatus: string
   subscribedTri: '' | 'true' | 'false'
   verifiedTri: '' | 'true' | 'false'
   page: number
@@ -41,6 +44,8 @@ export const defaultSalesListUrlState = (): SalesListUrlState => ({
   accountStatus: 'ACTIVE',
   profileStatus: 'APPROVED',
   gender: '',
+  birthYear: '',
+  maritalStatus: '',
   subscribedTri: '',
   verifiedTri: '',
   page: 0,
@@ -81,6 +86,8 @@ export function parseSalesListSearchParams(searchParams: URLSearchParams): Sales
     accountStatus,
     profileStatus,
     gender: searchParams.get('gender') ?? '',
+    birthYear: searchParams.get('birthYear') ?? '',
+    maritalStatus: searchParams.get('maritalStatus') ?? '',
     subscribedTri,
     verifiedTri,
     page: parsePage(searchParams.get('page')),
@@ -101,6 +108,8 @@ export function toSalesListSearchParams(state: SalesListUrlState): URLSearchPara
   if (state.accountStatus !== defaults.accountStatus) p.set('accountStatus', state.accountStatus)
   if (state.profileStatus !== defaults.profileStatus) p.set('profileStatus', state.profileStatus)
   if (state.gender.trim()) p.set('gender', state.gender.trim())
+  if (state.birthYear.trim()) p.set('birthYear', state.birthYear.trim())
+  if (state.maritalStatus.trim()) p.set('maritalStatus', state.maritalStatus.trim())
   if (state.subscribedTri) p.set('subscribed', state.subscribedTri)
   if (state.verifiedTri) p.set('verifiedProfile', state.verifiedTri)
   if (state.page > 0) p.set('page', String(state.page))

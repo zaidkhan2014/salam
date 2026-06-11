@@ -442,6 +442,10 @@ export interface SalesLeadsFilters {
   accountStatus?: AccountStatus
   /** Exact match on basicDetails.gender (trimmed) */
   gender?: string
+  /** Calendar year 1900–2100; matches dateOfBirth ISO yyyy-MM-dd by year prefix */
+  birthYear?: number
+  /** Exact match on basicDetails.maritalStatus (trimmed, case-sensitive) */
+  maritalStatus?: string
   subscribed?: boolean
   verifiedProfile?: boolean
   page?: number

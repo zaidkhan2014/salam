@@ -31,6 +31,16 @@ const salesStatuses = [
   'NOT_INTERESTED',
 ]
 
+/** Include in GET /sales/leads only when a valid year (1900–2100) to avoid API 400 */
+function birthYearForLeadsApi(raw: string): number | undefined {
+  const t = raw.trim()
+  if (!t) return undefined
+  if (!/^\d+$/.test(t)) return undefined
+  const n = Number(t)
+  if (!Number.isInteger(n) || n < 1900 || n > 2100) return undefined
+  return n
+}
+
 export default function SalesPage() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -82,6 +92,8 @@ export default function SalesPage() {
     accountStatus: parsed.accountStatus === 'ANY' ? undefined : parsed.accountStatus,
     profileStatus: parsed.profileStatus === 'ANY' ? undefined : parsed.profileStatus,
     gender: parsed.gender.trim() || undefined,
+    birthYear: birthYearForLeadsApi(parsed.birthYear),
+    maritalStatus: parsed.maritalStatus.trim() || undefined,
     subscribed: parsed.subscribedTri === '' ? undefined : parsed.subscribedTri === 'true',
     verifiedProfile: parsed.verifiedTri === '' ? undefined : parsed.verifiedTri === 'true',
     page: parsed.page,
@@ -186,8 +198,10 @@ export default function SalesPage() {
           <div className="space-y-2 border-t border-slate-100 pt-4">
             <h4 className="text-sm font-semibold text-slate-900">Profile filters</h4>
             <p className="text-xs text-slate-600">
-              Optional refinements on profile data. Gender must match the stored value exactly (trimmed). Subscribed
-              and Verified profile use Yes/No only when you need to narrow results.
+              Optional refinements on profile data. Gender and marital status must match the stored values exactly
+              (trimmed; case-sensitive). Birth year filters by <code className="rounded bg-slate-100 px-1">dateOfBirth</code>{' '}
+              ISO year prefix (e.g. 2000 matches 2000-03-09); use a whole year 1900–2100. Subscribed and Verified profile
+              use Yes/No only when you need to narrow results.
             </p>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <label className="block min-w-0 text-sm text-slate-600">
@@ -236,6 +250,35 @@ export default function SalesPage() {
                   value={parsed.gender}
                   onChange={(event) => setFilters({ gender: event.target.value, page: 0 })}
                   aria-label="Filter by gender exact match"
+                />
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">Birth year</span>
+                <Input
+                  id="sales-filter-birth-year"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="e.g. 2000"
+                  value={parsed.birthYear}
+                  onChange={(event) => setFilters({ birthYear: event.target.value, page: 0 })}
+                  aria-label="Filter by birth year"
+                />
+                {parsed.birthYear.trim() !== '' && birthYearForLeadsApi(parsed.birthYear) === undefined ? (
+                  <span className="mt-1 block text-xs text-amber-800">
+                    Enter a whole year between 1900 and 2100 (digits only). Invalid values are ignored for the API
+                    request.
+                  </span>
+                ) : null}
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600 sm:col-span-2 lg:col-span-1">
+                <span className="mb-1 block font-medium text-slate-800">Marital status (exact match)</span>
+                <Input
+                  id="sales-filter-marital-status"
+                  placeholder='e.g. Never married'
+                  value={parsed.maritalStatus}
+                  onChange={(event) => setFilters({ maritalStatus: event.target.value, page: 0 })}
+                  aria-label="Filter by marital status exact match"
                 />
               </label>
               <label className="block min-w-0 text-sm text-slate-600">

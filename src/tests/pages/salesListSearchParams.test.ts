@@ -28,8 +28,25 @@ describe('salesListSearchParams', () => {
       subscribedTri: 'true' as const,
       verifiedTri: 'false' as const,
       gender: 'Male',
+      birthYear: '2000',
+      maritalStatus: 'Never married',
     }
     expect(roundTrip(state)).toEqual(state)
+  })
+
+  it('round-trips birthYear and maritalStatus in URL', () => {
+    const state = {
+      ...defaultSalesListUrlState(),
+      birthYear: '1995',
+      maritalStatus: 'Divorced',
+    }
+    expect(roundTrip(state)).toEqual(state)
+  })
+
+  /** Out-of-range birth year is still preserved in URL state; SalesPage omits it from the API to avoid 400 */
+  it('preserves out-of-range birthYear string from URL', () => {
+    const parsed = parseSalesListSearchParams(new URLSearchParams('birthYear=1899'))
+    expect(parsed.birthYear).toBe('1899')
   })
 
   it('round-trips datetime-local fragments in URL', () => {
