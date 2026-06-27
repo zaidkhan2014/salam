@@ -18,5 +18,8 @@ export const routes = {
   reports: '/reports',
   reportDetail: (reportId: string) => `/reports/${reportId}`,
   sales: '/sales',
+  salesFollowUps: '/sales/follow-ups',
+  salesConversions: '/sales/conversions',
+  salesPerformance: '/sales/performance',
   salesLeadDetail: (userId: string) => `/sales/${userId}`,
 } as const

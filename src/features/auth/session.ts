@@ -1,9 +1,12 @@
-import type { AdminTokenResponse } from '@/api/types'
+import type { AdminStaffSummary, AdminTokenResponse } from '@/api/types'
 
 const AUTH_KEY = 'admin_auth_session'
 
 export interface AdminSession extends AdminTokenResponse {
-  adminUserId: string
+  /** Bootstrap token login only */
+  adminUserId?: string
+  /** Staff email/password login */
+  staff?: AdminStaffSummary
 }
 
 let inMemorySession: AdminSession | null = null
@@ -39,4 +42,28 @@ export function clearSession() {
 
 export function getAccessToken() {
   return getSession()?.accessToken ?? null
+}
+
+/** Staff employeeId for notes/assignment; falls back to bootstrap adminUserId */
+export function getStaffEmployeeId(): string | null {
+  const session = getSession()
+  if (!session) return null
+  return session.staff?.employeeId ?? session.adminUserId ?? null
+}
+
+export function hasRole(session: AdminSession | null, role: string): boolean {
+  return session?.roles?.includes(role) ?? false
+}
+
+export function isSalesAgent(session: AdminSession | null): boolean {
+  return hasRole(session, 'ROLE_SALES_AGENT')
+}
+
+export function isSalesManagerOrAbove(session: AdminSession | null): boolean {
+  if (!session) return false
+  return (
+    hasRole(session, 'ROLE_ADMIN') ||
+    session.staff?.role === 'SUPER_ADMIN' ||
+    session.staff?.role === 'SALES_MANAGER'
+  )
 }

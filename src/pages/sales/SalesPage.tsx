@@ -10,36 +10,27 @@ import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAdminSalesLeads, useAdminSalesSummary } from '@/hooks/api/useAdminSales'
 import type { AdminSalesStatus } from '@/api/types'
+import { cn } from '@/lib/cn'
+import { SalesSavedViews } from '@/pages/sales/SalesSavedViews'
+import { SalesSubNav } from '@/pages/sales/SalesSubNav'
+import {
+  ADMIN_SALES_STATUS_FILTER_OPTIONS,
+  birthYearForLeadsApi,
+  salesSummaryMetricLabel,
+} from '@/pages/sales/salesConstants'
 import {
   SALES_LIST_SEARCH_STORAGE_KEY,
+  activeSalesListPreset,
   parseSalesListSearchParams,
+  salesListPresetPatch,
+  salesListStateToApiFilters,
   toSalesListSearchParams,
   type SalesListUrlState,
 } from '@/pages/sales/salesListSearchParams'
 import { routes } from '@/router/paths'
-import { toUtcIso } from '@/utils/date'
 import { formatCompactNumber, formatDateTime } from '@/utils/format'
 
 const PAGE_SIZE = 20
-const salesStatuses = [
-  'ALL',
-  'CALL_REMAINING',
-  'ALREADY_CALLED',
-  'CALL_NOT_PICKED',
-  'CALL_BACK_LATER',
-  'INTERESTED',
-  'NOT_INTERESTED',
-]
-
-/** Include in GET /sales/leads only when a valid year (1900–2100) to avoid API 400 */
-function birthYearForLeadsApi(raw: string): number | undefined {
-  const t = raw.trim()
-  if (!t) return undefined
-  if (!/^\d+$/.test(t)) return undefined
-  const n = Number(t)
-  if (!Number.isInteger(n) || n < 1900 || n > 2100) return undefined
-  return n
-}
 
 export default function SalesPage() {
   const location = useLocation()
@@ -47,6 +38,7 @@ export default function SalesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const parsed = useMemo(() => parseSalesListSearchParams(searchParams), [searchParams])
   const didHydrateFromStorageRef = useRef(false)
+  const viewPreset = activeSalesListPreset(parsed)
 
   const setFilters = useCallback(
     (patch: Partial<SalesListUrlState>) => {
@@ -82,23 +74,7 @@ export default function SalesPage() {
     }
   }, [location.pathname, navigate, searchParams])
 
-  const filters = {
-    start: toUtcIso(parsed.start),
-    end: toUtcIso(parsed.end),
-    status: parsed.status || 'ALL',
-    followUpStart: toUtcIso(parsed.followUpStart),
-    followUpEnd: toUtcIso(parsed.followUpEnd),
-    query: parsed.query.trim() || undefined,
-    accountStatus: parsed.accountStatus === 'ANY' ? undefined : parsed.accountStatus,
-    profileStatus: parsed.profileStatus === 'ANY' ? undefined : parsed.profileStatus,
-    gender: parsed.gender.trim() || undefined,
-    birthYear: birthYearForLeadsApi(parsed.birthYear),
-    maritalStatus: parsed.maritalStatus.trim() || undefined,
-    subscribed: parsed.subscribedTri === '' ? undefined : parsed.subscribedTri === 'true',
-    verifiedProfile: parsed.verifiedTri === '' ? undefined : parsed.verifiedTri === 'true',
-    page: parsed.page,
-    size: PAGE_SIZE,
-  } as const
+  const filters = useMemo(() => salesListStateToApiFilters(parsed, PAGE_SIZE), [parsed])
 
   const leadsQuery = useAdminSalesLeads(filters)
   const summaryQuery = useAdminSalesSummary({ start: filters.start, end: filters.end })
@@ -114,33 +90,42 @@ export default function SalesPage() {
   return (
     <section className="min-w-0 space-y-4">
       <PageHeader title="Sales" description="Manage lead pipeline, follow-ups, and sales outcomes." />
+      <SalesSubNav />
+
+      <div className="flex flex-wrap gap-2">
+        {(['all', 'pool', 'my_leads'] as const).map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            className={cn(
+              'rounded-full border px-3 py-1 text-sm transition',
+              viewPreset === preset
+                ? 'border-slate-900 bg-slate-900 text-white'
+                : 'border-slate-200 text-slate-600 hover:bg-slate-50',
+            )}
+            onClick={() => setFilters(salesListPresetPatch(preset))}
+          >
+            {preset === 'all' ? 'All leads' : preset === 'pool' ? 'Pool' : 'My leads'}
+          </button>
+        ))}
+      </div>
 
       <Card className="min-w-0">
         <CardHeader>
           <CardTitle>Filters</CardTitle>
           <p className="mt-1 text-sm text-slate-600">
-            The first date range filters leads by <strong>when their profile was created</strong> and drives the{' '}
-            <strong>summary KPI cards</strong> with the same range. The second range filters the <strong>leads table
-            only</strong> by scheduled follow-up. Times use your browser clock and are sent to the API as UTC.
-          </p>
-          <p className="mt-2 text-sm text-slate-600">
-            <strong>Profile filters</strong> below match <code className="rounded bg-slate-100 px-1">user_profiles</code>{' '}
-            (same idea as User search). By default we send <strong>account ACTIVE</strong> and <strong>profile
-            APPROVED</strong> so deleted, banned, or non-approved profiles stay out of the call queue—set Account or
-            Profile to <strong>Any</strong> to widen the list.
-          </p>
-          <p className="mt-2 text-xs text-slate-500">
-            Filters and page are kept in the URL so you can return from a lead without losing them.
+            Use <strong>Pool</strong> for unclaimed leads and <strong>My leads</strong> for your assigned queue. Sales
+            agents should use these presets — the API does not auto-scope lists by role.
           </p>
         </CardHeader>
         <CardContent className="min-w-0 space-y-6 overflow-x-auto pt-0">
+          <SalesSavedViews
+            currentSearch={location.search}
+            onLoadView={(search) => navigate({ pathname: routes.sales, search }, { replace: true })}
+          />
+
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-slate-900">Profile created</h4>
-            <p className="text-xs text-slate-600">
-              Optional. When set, narrows the list to profiles whose <code className="rounded bg-slate-100 px-1">createdAt</code>{' '}
-              falls in this window. Summary totals use these same dates. Leave both empty to list all leads; summary may
-              then follow server defaults, so pick a range if KPIs and the table should match.
-            </p>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">From</span>
@@ -167,10 +152,6 @@ export default function SalesPage() {
 
           <div className="space-y-2 border-t border-slate-100 pt-4">
             <h4 className="text-sm font-semibold text-slate-900">Follow-up scheduled</h4>
-            <p className="text-xs text-slate-600">
-              Optional. Filters the <strong>leads table only</strong> by follow-up time. If either bound is set, leads
-              with no follow-up date are hidden. Does not change the summary KPI cards.
-            </p>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">From</span>
@@ -197,12 +178,6 @@ export default function SalesPage() {
 
           <div className="space-y-2 border-t border-slate-100 pt-4">
             <h4 className="text-sm font-semibold text-slate-900">Profile filters</h4>
-            <p className="text-xs text-slate-600">
-              Optional refinements on profile data. Gender and marital status must match the stored values exactly
-              (trimmed; case-sensitive). Birth year filters by <code className="rounded bg-slate-100 px-1">dateOfBirth</code>{' '}
-              ISO year prefix (e.g. 2000 matches 2000-03-09); use a whole year 1900–2100. Subscribed and Verified profile
-              use Yes/No only when you need to narrow results.
-            </p>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Account status</span>
@@ -242,7 +217,7 @@ export default function SalesPage() {
                   <option value="REJECTED">Rejected</option>
                 </Select>
               </label>
-              <label className="block min-w-0 text-sm text-slate-600 sm:col-span-2 lg:col-span-1">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Gender (exact match)</span>
                 <Input
                   id="sales-filter-gender"
@@ -266,19 +241,38 @@ export default function SalesPage() {
                 />
                 {parsed.birthYear.trim() !== '' && birthYearForLeadsApi(parsed.birthYear) === undefined ? (
                   <span className="mt-1 block text-xs text-amber-800">
-                    Enter a whole year between 1900 and 2100 (digits only). Invalid values are ignored for the API
-                    request.
+                    Enter a whole year between 1900 and 2100 (digits only).
                   </span>
                 ) : null}
               </label>
-              <label className="block min-w-0 text-sm text-slate-600 sm:col-span-2 lg:col-span-1">
+              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Marital status (exact match)</span>
                 <Input
                   id="sales-filter-marital-status"
-                  placeholder='e.g. Never married'
+                  placeholder="e.g. Never married"
                   value={parsed.maritalStatus}
                   onChange={(event) => setFilters({ maritalStatus: event.target.value, page: 0 })}
                   aria-label="Filter by marital status exact match"
+                />
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">State (exact match)</span>
+                <Input
+                  id="sales-filter-state"
+                  placeholder="e.g. Uttar Pradesh"
+                  value={parsed.state}
+                  onChange={(event) => setFilters({ state: event.target.value, page: 0 })}
+                  aria-label="Filter by state exact match"
+                />
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">City (exact match)</span>
+                <Input
+                  id="sales-filter-city"
+                  placeholder="e.g. Lucknow"
+                  value={parsed.city}
+                  onChange={(event) => setFilters({ city: event.target.value, page: 0 })}
+                  aria-label="Filter by city exact match"
                 />
               </label>
               <label className="block min-w-0 text-sm text-slate-600">
@@ -320,7 +314,7 @@ export default function SalesPage() {
             </div>
           </div>
 
-          <div className="grid min-w-0 grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
+          <div className="grid min-w-0 grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2 lg:grid-cols-3">
             <label className="block min-w-0 text-sm text-slate-600">
               <span className="mb-1 block font-medium text-slate-800">Sales status</span>
               <Select
@@ -334,7 +328,7 @@ export default function SalesPage() {
                 }}
                 aria-label="Filter by sales status"
               >
-                {salesStatuses.map((item) => (
+                {ADMIN_SALES_STATUS_FILTER_OPTIONS.map((item) => (
                   <option key={item} value={item}>
                     {item}
                   </option>
@@ -348,7 +342,34 @@ export default function SalesPage() {
                 placeholder="User ID, member ID, phone, or name"
                 value={parsed.query}
                 onChange={(event) => setFilters({ query: event.target.value, page: 0 })}
-                aria-label="Search leads by user ID, member ID, phone, or name"
+                aria-label="Search leads"
+              />
+            </label>
+            <label className="block min-w-0 text-sm text-slate-600">
+              <span className="mb-1 block font-medium text-slate-800">Sort</span>
+              <Select
+                id="sales-filter-sort"
+                value={parsed.sort}
+                onChange={(event) => {
+                  setFilters({
+                    sort: event.target.value as SalesListUrlState['sort'],
+                    page: 0,
+                  })
+                }}
+                aria-label="Sort leads"
+              >
+                <option value="">Default</option>
+                <option value="leadScore">Lead score</option>
+              </Select>
+            </label>
+            <label className="block min-w-0 text-sm text-slate-600">
+              <span className="mb-1 block font-medium text-slate-800">Assigned to (employeeId)</span>
+              <Input
+                id="sales-filter-assigned"
+                placeholder="SALES001 or UNASSIGNED"
+                value={parsed.assignedToAdminId}
+                onChange={(event) => setFilters({ assignedToAdminId: event.target.value, page: 0 })}
+                aria-label="Filter by assignee"
               />
             </label>
           </div>
@@ -364,24 +385,20 @@ export default function SalesPage() {
         </div>
       ) : null}
       {summaryQuery.data?.metrics?.length ? (
-        <>
-          <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
-            {summaryQuery.data.metrics.map((metric) => (
-              <Card key={metric.key}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xs uppercase text-slate-500">{metric.key}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-semibold text-slate-900">{formatCompactNumber(metric.total)}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <p className="text-xs text-slate-500">
-            Summary KPIs use the <strong>Profile created</strong> dates in Filters (or server defaults when both are
-            empty).
-          </p>
-        </>
+        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
+          {summaryQuery.data.metrics.map((metric) => (
+            <Card key={metric.key}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs uppercase text-slate-500">
+                  {salesSummaryMetricLabel(metric.key)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold text-slate-900">{formatCompactNumber(metric.total)}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       ) : null}
 
       <QueryFeedback loading={false} error={leadsQuery.error} onRetry={() => void leadsQuery.refetch()} />
@@ -394,7 +411,7 @@ export default function SalesPage() {
       ) : null}
 
       {!leadsQuery.isLoading && !leadsQuery.data?.items.length ? (
-        <EmptyState title="No leads found." subtitle="Try adjusting date, status, or follow-up filters." />
+        <EmptyState title="No leads found." subtitle="Try adjusting filters or switch Pool / My leads." />
       ) : null}
 
       {leadsQuery.data?.items.length ? (
@@ -404,11 +421,12 @@ export default function SalesPage() {
               <thead className="bg-slate-100 text-slate-600">
                 <tr>
                   <th className="px-3 py-2">Lead</th>
-                  <th className="px-3 py-2">User ID</th>
                   <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Assigned</th>
+                  <th className="px-3 py-2">Score</th>
+                  <th className="px-3 py-2">Outcome</th>
                   <th className="px-3 py-2">Note</th>
                   <th className="px-3 py-2">Follow-up</th>
-                  <th className="px-3 py-2">Last Called</th>
                   <th className="px-3 py-2">Action</th>
                 </tr>
               </thead>
@@ -418,13 +436,12 @@ export default function SalesPage() {
                     <td className="px-3 py-2">
                       <UserLink userId={lead.userId} label={lead.fullName ?? lead.userId} />
                     </td>
-                    <td className="px-3 py-2 font-mono text-xs">
-                      <UserLink userId={lead.userId} />
-                    </td>
                     <td className="px-3 py-2">{lead.salesStatus}</td>
-                    <td className="max-w-[250px] px-3 py-2">{lead.note || '--'}</td>
+                    <td className="px-3 py-2">{lead.assignedToAdminId ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.leadScore ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.outcomeReason ?? '--'}</td>
+                    <td className="max-w-[200px] px-3 py-2">{lead.note || '--'}</td>
                     <td className="px-3 py-2">{formatDateTime(lead.followUpAt)}</td>
-                    <td className="px-3 py-2">{formatDateTime(lead.lastCalledAt)}</td>
                     <td className="px-3 py-2">
                       <Link
                         className="underline"

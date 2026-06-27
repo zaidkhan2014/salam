@@ -4,11 +4,24 @@ import { adminEndpoints } from '@/api/endpoints'
 import { cleanQueryParams } from '@/api/params'
 import type {
   AdminMetricsResponse,
+  AdminSalesActivitySearchResponse,
+  AdminSalesAgentPerformanceResponse,
+  AdminSalesConversionSearchResponse,
   AdminSalesLeadDetailResponse,
   AdminSalesLeadSearchResponse,
+  AdminSalesSavedViewSearchResponse,
+  AdminSalesSavedViewSummary,
+  AssignSalesLeadRequest,
+  CreateAdminSalesCommunicationRequest,
+  CreateAdminSalesSavedViewRequest,
+  SalesActivitiesFilters,
+  SalesAgentPerformanceFilters,
+  SalesConversionsFilters,
+  SalesFollowUpsFilters,
   SalesLeadsFilters,
   UpdateSalesFollowUpRequest,
   UpdateSalesNoteRequest,
+  UpdateAdminSalesSavedViewRequest,
   UpdateSalesStatusRequest,
 } from '@/api/types'
 
@@ -49,6 +62,75 @@ export function useAdminSalesLeadDetail(userId: string | undefined) {
   })
 }
 
+export function useAdminSalesFollowUps(filters: SalesFollowUpsFilters) {
+  return useQuery({
+    queryKey: ['admin-sales-follow-ups', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminSalesLeadSearchResponse>(adminEndpoints.sales.followUps, {
+        params: cleanQueryParams(filters),
+      })
+      return response.data
+    },
+  })
+}
+
+export function useAdminSalesActivities(userId: string | undefined, filters: SalesActivitiesFilters = {}) {
+  return useQuery({
+    queryKey: ['admin-sales-activities', userId, filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminSalesActivitySearchResponse>(
+        adminEndpoints.sales.activities(userId ?? ''),
+        { params: cleanQueryParams(filters) },
+      )
+      return response.data
+    },
+    enabled: Boolean(userId),
+  })
+}
+
+export function useAdminSalesConversions(filters: SalesConversionsFilters) {
+  return useQuery({
+    queryKey: ['admin-sales-conversions', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminSalesConversionSearchResponse>(adminEndpoints.sales.conversions, {
+        params: cleanQueryParams(filters),
+      })
+      return response.data
+    },
+  })
+}
+
+export function useAdminSalesAgentPerformance(filters: SalesAgentPerformanceFilters) {
+  return useQuery({
+    queryKey: ['admin-sales-agent-performance', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminSalesAgentPerformanceResponse>(
+        adminEndpoints.sales.agentPerformance,
+        { params: cleanQueryParams(filters) },
+      )
+      return response.data
+    },
+  })
+}
+
+export function useAdminSalesSavedViews() {
+  return useQuery({
+    queryKey: ['admin-sales-saved-views'],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminSalesSavedViewSearchResponse>(adminEndpoints.sales.savedViews)
+      return response.data
+    },
+  })
+}
+
+function invalidateLeadQueries(queryClient: ReturnType<typeof useQueryClient>, userId: string) {
+  void queryClient.invalidateQueries({ queryKey: ['admin-sales-leads'] })
+  void queryClient.invalidateQueries({ queryKey: ['admin-sales-summary'] })
+  void queryClient.invalidateQueries({ queryKey: ['admin-sales-lead-detail', userId] })
+  void queryClient.invalidateQueries({ queryKey: ['admin-sales-follow-ups'] })
+  void queryClient.invalidateQueries({ queryKey: ['admin-sales-activities', userId] })
+}
+
 export function useUpdateSalesStatus(userId: string) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -59,11 +141,7 @@ export function useUpdateSalesStatus(userId: string) {
       )
       return response.data
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['admin-sales-leads'] })
-      void queryClient.invalidateQueries({ queryKey: ['admin-sales-summary'] })
-      void queryClient.invalidateQueries({ queryKey: ['admin-sales-lead-detail', userId] })
-    },
+    onSuccess: () => invalidateLeadQueries(queryClient, userId),
   })
 }
 
@@ -77,10 +155,7 @@ export function useUpdateSalesNote(userId: string) {
       )
       return response.data
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['admin-sales-lead-detail', userId] })
-      void queryClient.invalidateQueries({ queryKey: ['admin-sales-leads'] })
-    },
+    onSuccess: () => invalidateLeadQueries(queryClient, userId),
   })
 }
 
@@ -94,10 +169,97 @@ export function useUpdateSalesFollowUp(userId: string) {
       )
       return response.data
     },
+    onSuccess: () => invalidateLeadQueries(queryClient, userId),
+  })
+}
+
+export function useClaimSalesLead(userId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const response = await adminClient.post<AdminSalesLeadDetailResponse>(adminEndpoints.sales.claim(userId))
+      return response.data
+    },
+    onSuccess: () => invalidateLeadQueries(queryClient, userId),
+  })
+}
+
+export function useReleaseSalesLead(userId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const response = await adminClient.post<AdminSalesLeadDetailResponse>(adminEndpoints.sales.release(userId))
+      return response.data
+    },
+    onSuccess: () => invalidateLeadQueries(queryClient, userId),
+  })
+}
+
+export function useAssignSalesLead(userId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (body: AssignSalesLeadRequest) => {
+      const response = await adminClient.patch<AdminSalesLeadDetailResponse>(
+        adminEndpoints.sales.assign(userId),
+        body,
+      )
+      return response.data
+    },
+    onSuccess: () => invalidateLeadQueries(queryClient, userId),
+  })
+}
+
+export function useLogSalesCommunication(userId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (body: CreateAdminSalesCommunicationRequest) => {
+      const response = await adminClient.post<AdminSalesLeadDetailResponse>(
+        adminEndpoints.sales.communications(userId),
+        body,
+      )
+      return response.data
+    },
+    onSuccess: () => invalidateLeadQueries(queryClient, userId),
+  })
+}
+
+export function useCreateSalesSavedView() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (body: CreateAdminSalesSavedViewRequest) => {
+      const response = await adminClient.post<AdminSalesSavedViewSummary>(adminEndpoints.sales.savedViews, body)
+      return response.data
+    },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['admin-sales-lead-detail', userId] })
-      void queryClient.invalidateQueries({ queryKey: ['admin-sales-leads'] })
-      void queryClient.invalidateQueries({ queryKey: ['admin-sales-summary'] })
+      void queryClient.invalidateQueries({ queryKey: ['admin-sales-saved-views'] })
+    },
+  })
+}
+
+export function useUpdateSalesSavedView(viewId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (body: UpdateAdminSalesSavedViewRequest) => {
+      const response = await adminClient.patch<AdminSalesSavedViewSummary>(
+        adminEndpoints.sales.savedView(viewId),
+        body,
+      )
+      return response.data
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin-sales-saved-views'] })
+    },
+  })
+}
+
+export function useDeleteSalesSavedView() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (viewId: string) => {
+      await adminClient.delete(adminEndpoints.sales.savedView(viewId))
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin-sales-saved-views'] })
     },
   })
 }

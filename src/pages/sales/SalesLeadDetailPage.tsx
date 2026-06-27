@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
+import { Alert } from '@/components/ui/alert'
 import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { UserLink } from '@/components/common/UserLink'
@@ -10,25 +11,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import type { AdminSalesOutcomeReason, AdminSalesStatus } from '@/api/types'
+import { useAuth } from '@/features/auth/useAuth'
+import { getStaffEmployeeId, isSalesManagerOrAbove } from '@/features/auth/session'
 import {
+  useAdminSalesActivities,
   useAdminSalesLeadDetail,
+  useAssignSalesLead,
+  useClaimSalesLead,
+  useLogSalesCommunication,
+  useReleaseSalesLead,
   useUpdateSalesFollowUp,
   useUpdateSalesNote,
   useUpdateSalesStatus,
 } from '@/hooks/api/useAdminSales'
+import {
+  ADMIN_SALES_OUTCOME_REASONS,
+  ADMIN_SALES_STATUSES,
+  statusRequiresOutcomeReason,
+} from '@/pages/sales/salesConstants'
 import { routes } from '@/router/paths'
-import { toUtcIso } from '@/utils/date'
+import { toDatetimeLocalInput, toUtcIso } from '@/utils/date'
 import { formatDateTime, formatNumber } from '@/utils/format'
 import { getInitialsFromFullName, getPrimaryGalleryImageUrl } from '@/utils/profileMedia'
-
-const statuses = [
-  'CALL_REMAINING',
-  'ALREADY_CALLED',
-  'CALL_NOT_PICKED',
-  'CALL_BACK_LATER',
-  'INTERESTED',
-  'NOT_INTERESTED',
-] as const
 
 const engagementFields = [
   'reportsAgainstUser',
@@ -48,30 +53,94 @@ function salesListSearchForLink(raw?: string): string {
   return raw.startsWith('?') ? raw.slice(1) : raw
 }
 
+function syncDetailForms(data: {
+  salesStatus: string
+  lastCalledAt: string | null
+  followUpAt: string | null
+  outcomeReason: AdminSalesOutcomeReason | null
+}): {
+  status: AdminSalesStatus
+  lastCalledAt: string
+  followUpAt: string
+  outcomeReason: AdminSalesOutcomeReason | ''
+} {
+  return {
+    status: data.salesStatus as AdminSalesStatus,
+    lastCalledAt: toDatetimeLocalInput(data.lastCalledAt ?? undefined),
+    followUpAt: toDatetimeLocalInput(data.followUpAt ?? undefined),
+    outcomeReason: data.outcomeReason ?? '',
+  }
+}
+
 export default function SalesLeadDetailPage() {
   const { userId } = useParams<{ userId: string }>()
   const location = useLocation()
+  const { session } = useAuth()
   const state = location.state as SalesDetailLocationState | null
   const backSearch = salesListSearchForLink(state?.salesListSearch)
 
   const query = useAdminSalesLeadDetail(userId)
+  const activitiesQuery = useAdminSalesActivities(userId, { page: 0, size: 20 })
   const updateStatus = useUpdateSalesStatus(userId ?? '')
   const updateNote = useUpdateSalesNote(userId ?? '')
   const updateFollowUp = useUpdateSalesFollowUp(userId ?? '')
+  const claimLead = useClaimSalesLead(userId ?? '')
+  const releaseLead = useReleaseSalesLead(userId ?? '')
+  const assignLead = useAssignSalesLead(userId ?? '')
+  const logCommunication = useLogSalesCommunication(userId ?? '')
 
-  const [status, setStatus] = useState<(typeof statuses)[number]>('CALL_REMAINING')
+  const [status, setStatus] = useState<AdminSalesStatus>('CALL_REMAINING')
+  const [outcomeReason, setOutcomeReason] = useState<AdminSalesOutcomeReason | ''>('')
   const [lastCalledAt, setLastCalledAt] = useState('')
   const [note, setNote] = useState('')
-  const [adminUserId, setAdminUserId] = useState('')
   const [followUpAt, setFollowUpAt] = useState('')
+  const [assignEmployeeId, setAssignEmployeeId] = useState('')
+  const [whatsappTemplate, setWhatsappTemplate] = useState('')
+  const [whatsappNote, setWhatsappNote] = useState('')
+  const [actionError, setActionError] = useState<string | null>(null)
+
+  const employeeId = getStaffEmployeeId()
+  const canAssign = isSalesManagerOrAbove(session)
+
+  useEffect(() => {
+    if (!query.data) return
+    const synced = syncDetailForms(query.data)
+    setStatus(synced.status)
+    setLastCalledAt(synced.lastCalledAt)
+    setFollowUpAt(synced.followUpAt)
+    setOutcomeReason(synced.outcomeReason)
+  }, [query.data])
 
   const isBusy =
-    updateStatus.isPending || updateNote.isPending || updateFollowUp.isPending || query.isRefetching
+    updateStatus.isPending ||
+    updateNote.isPending ||
+    updateFollowUp.isPending ||
+    claimLead.isPending ||
+    releaseLead.isPending ||
+    assignLead.isPending ||
+    logCommunication.isPending ||
+    query.isRefetching
 
   const profile = query.data?.profile
   const mainImageUrl = profile ? getPrimaryGalleryImageUrl(profile) : null
   const displayName = profile?.basicDetails?.fullName?.trim() || profile?.userId || userId
   const photoAlt = displayName ? `Profile photo for ${displayName}` : 'Profile photo'
+
+  const showOutcomeReason = statusRequiresOutcomeReason(status)
+  const canClaim =
+    query.data &&
+    (query.data.salesStatus === 'CALL_REMAINING' || query.data.salesStatus === 'IN_PROCESS') &&
+    !query.data.assignedToAdminId
+  const canRelease = Boolean(query.data?.assignedToAdminId)
+
+  async function runAction(action: () => Promise<unknown>) {
+    setActionError(null)
+    try {
+      await action()
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Action failed')
+    }
+  }
 
   return (
     <section className="min-w-0 space-y-4">
@@ -80,11 +149,31 @@ export default function SalesLeadDetailPage() {
         Back to sales
       </Link>
 
+      {actionError ? <Alert className="border-red-200 bg-red-50 text-red-700">{actionError}</Alert> : null}
+
       <QueryFeedback loading={false} error={query.error} onRetry={() => void query.refetch()} />
       {query.isLoading ? <Skeleton className="h-80 w-full" /> : null}
 
       {query.data ? (
         <div className="min-w-0 space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              disabled={isBusy || !canClaim}
+              onClick={() => runAction(() => claimLead.mutateAsync())}
+            >
+              Claim lead
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isBusy || !canRelease}
+              onClick={() => runAction(() => releaseLead.mutateAsync())}
+            >
+              Release to pool
+            </Button>
+          </div>
+
           <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-start">
             <div className="mx-auto w-full max-w-full min-w-0 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:max-w-md lg:mx-0 lg:w-80">
               <div className="aspect-square w-full">
@@ -105,16 +194,19 @@ export default function SalesLeadDetailPage() {
                 <CardContent className="space-y-2 text-sm">
                   <Row label="User ID" value={<UserLink userId={query.data.profile.userId} />} />
                   <Row label="Sales status" value={query.data.salesStatus} />
+                  <Row label="Lead score" value={String(query.data.leadScore ?? '--')} />
+                  <Row label="Assigned to" value={query.data.assignedToAdminId ?? '--'} />
+                  <Row label="Claimed at" value={formatDateTime(query.data.claimedAt)} />
+                  <Row label="Outcome reason" value={query.data.outcomeReason ?? '--'} />
+                  <Row label="Converted at" value={formatDateTime(query.data.convertedAt)} />
                   <Row label="Latest note" value={query.data.note || '--'} />
                   <Row label="Follow-up at" value={formatDateTime(query.data.followUpAt)} />
                   <Row label="Last called at" value={formatDateTime(query.data.lastCalledAt)} />
-                  <Row label="Assigned to admin" value={query.data.assignedToAdminId ?? '--'} />
                   <Row label="Sales record created" value={formatDateTime(query.data.salesCreatedAt)} />
                   <Row label="Sales record updated" value={formatDateTime(query.data.salesUpdatedAt)} />
                   <Row label="OTP verified" value={query.data.otpVerified ? 'Yes' : 'No'} />
                   <Row label="Profile registered" value={query.data.profileRegistered ? 'Yes' : 'No'} />
                   <Row label="Signup at" value={formatDateTime(query.data.signupAt)} />
-                  <Row label="OTP verified at" value={formatDateTime(query.data.otpVerifiedAt)} />
                   <Row label="Last login at" value={formatDateTime(query.data.lastLoginAt)} />
                   <Row label="Last activity at" value={formatDateTime(query.data.lastActivityAt)} />
                 </CardContent>
@@ -152,52 +244,73 @@ export default function SalesLeadDetailPage() {
               <CardContent className="space-y-3">
                 <Select
                   value={status}
-                  onChange={(event) => setStatus(event.target.value as (typeof statuses)[number])}
+                  onChange={(event) => setStatus(event.target.value as AdminSalesStatus)}
                   disabled={isBusy}
                 >
-                  {statuses.map((item) => (
+                  {ADMIN_SALES_STATUSES.map((item) => (
                     <option key={item} value={item}>
                       {item}
                     </option>
                   ))}
                 </Select>
+                {showOutcomeReason ? (
+                  <Select
+                    value={outcomeReason}
+                    onChange={(event) => setOutcomeReason(event.target.value as AdminSalesOutcomeReason)}
+                    disabled={isBusy}
+                    aria-label="Outcome reason"
+                  >
+                    <option value="">Select outcome reason…</option>
+                    {ADMIN_SALES_OUTCOME_REASONS.map((reason) => (
+                      <option key={reason} value={reason}>
+                        {reason}
+                      </option>
+                    ))}
+                  </Select>
+                ) : null}
                 <Input
                   type="datetime-local"
                   value={lastCalledAt}
                   onChange={(event) => setLastCalledAt(event.target.value)}
                   disabled={isBusy}
+                  aria-label="Last called at"
                 />
+                <p className="text-xs text-slate-500">
+                  Leave last called empty for ALREADY_CALLED or CALL_NOT_PICKED — server stamps current time.
+                </p>
                 <Button
-                  disabled={isBusy}
+                  disabled={isBusy || (showOutcomeReason && !outcomeReason)}
                   onClick={() =>
-                    updateStatus.mutate({
-                      status,
-                      lastCalledAt: toUtcIso(lastCalledAt) ?? null,
-                    })
+                    runAction(() =>
+                      updateStatus.mutateAsync({
+                        status,
+                        lastCalledAt: toUtcIso(lastCalledAt) ?? null,
+                        outcomeReason: showOutcomeReason ? (outcomeReason || null) : null,
+                      }),
+                    )
                   }
                 >
                   Update Status
                 </Button>
 
                 <Input
-                  placeholder="admin user id"
-                  value={adminUserId}
-                  onChange={(event) => setAdminUserId(event.target.value)}
-                  disabled={isBusy}
-                />
-                <Input
                   placeholder="Write note"
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
                   disabled={isBusy}
                 />
+                <p className="text-xs text-slate-500">
+                  Notes are saved as employeeId: <strong>{employeeId ?? '(sign in as staff)'}</strong>
+                </p>
                 <Button
                   disabled={isBusy || note.trim().length === 0}
                   onClick={() =>
-                    updateNote.mutate({
-                      note,
-                      adminUserId: adminUserId || null,
-                    })
+                    runAction(() =>
+                      updateNote.mutateAsync({
+                        note,
+                        adminUserId: employeeId,
+                      }),
+                    )
                   }
                 >
                   Save Note
@@ -208,20 +321,84 @@ export default function SalesLeadDetailPage() {
                   value={followUpAt}
                   onChange={(event) => setFollowUpAt(event.target.value)}
                   disabled={isBusy}
+                  aria-label="Follow-up at"
                 />
                 <div className="flex gap-2">
                   <Button
                     disabled={isBusy}
                     onClick={() =>
-                      updateFollowUp.mutate({
-                        followUpAt: toUtcIso(followUpAt) ?? null,
-                      })
+                      runAction(() =>
+                        updateFollowUp.mutateAsync({
+                          followUpAt: toUtcIso(followUpAt) ?? null,
+                        }),
+                      )
                     }
                   >
                     Save Follow-up
                   </Button>
-                  <Button disabled={isBusy} variant="outline" onClick={() => updateFollowUp.mutate({ followUpAt: null })}>
+                  <Button
+                    disabled={isBusy}
+                    variant="outline"
+                    onClick={() => runAction(() => updateFollowUp.mutateAsync({ followUpAt: null }))}
+                  >
                     Clear
+                  </Button>
+                </div>
+
+                {canAssign ? (
+                  <>
+                    <Input
+                      placeholder="Assign to employeeId (empty to unassign)"
+                      value={assignEmployeeId}
+                      onChange={(event) => setAssignEmployeeId(event.target.value)}
+                      disabled={isBusy}
+                    />
+                    <Button
+                      disabled={isBusy}
+                      variant="outline"
+                      onClick={() =>
+                        runAction(() =>
+                          assignLead.mutateAsync({
+                            assignedToAdminId: assignEmployeeId.trim() || null,
+                          }),
+                        )
+                      }
+                    >
+                      Assign lead
+                    </Button>
+                  </>
+                ) : null}
+
+                <div className="border-t border-slate-100 pt-3">
+                  <p className="mb-2 text-sm font-medium text-slate-800">Log WhatsApp</p>
+                  <Input
+                    placeholder="Template name"
+                    value={whatsappTemplate}
+                    onChange={(event) => setWhatsappTemplate(event.target.value)}
+                    disabled={isBusy}
+                  />
+                  <Input
+                    className="mt-2"
+                    placeholder="Note"
+                    value={whatsappNote}
+                    onChange={(event) => setWhatsappNote(event.target.value)}
+                    disabled={isBusy}
+                  />
+                  <Button
+                    className="mt-2"
+                    disabled={isBusy || !whatsappTemplate.trim()}
+                    variant="outline"
+                    onClick={() =>
+                      runAction(() =>
+                        logCommunication.mutateAsync({
+                          channel: 'WHATSAPP',
+                          templateName: whatsappTemplate.trim(),
+                          note: whatsappNote.trim() || null,
+                        }),
+                      )
+                    }
+                  >
+                    Log message
                   </Button>
                 </div>
               </CardContent>
@@ -240,7 +417,7 @@ export default function SalesLeadDetailPage() {
                       <div key={`${entry.createdAt}-${entry.text}`} className="rounded-lg border border-slate-200 p-3 text-sm">
                         <p className="text-slate-900">{entry.text}</p>
                         <p className="mt-1 text-xs text-slate-500">
-                          {entry.adminUserId ?? 'unknown admin'} - {formatDateTime(entry.createdAt)}
+                          {entry.adminUserId ?? 'unknown'} — {formatDateTime(entry.createdAt)}
                         </p>
                       </div>
                     ))}
@@ -249,6 +426,34 @@ export default function SalesLeadDetailPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Activity timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <QueryFeedback
+                loading={activitiesQuery.isLoading}
+                error={activitiesQuery.error}
+                onRetry={() => void activitiesQuery.refetch()}
+              />
+              {!activitiesQuery.isLoading && !activitiesQuery.data?.items.length ? (
+                <p className="text-sm text-slate-500">No activities recorded.</p>
+              ) : (
+                <div className="space-y-2">
+                  {activitiesQuery.data?.items.map((entry) => (
+                    <div key={entry.id} className="rounded-lg border border-slate-200 p-3 text-sm">
+                      <p className="font-medium text-slate-900">{entry.type}</p>
+                      <p className="text-slate-700">{entry.message}</p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {entry.actorEmployeeId ?? 'system'} — {formatDateTime(entry.createdAt)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       ) : null}
     </section>

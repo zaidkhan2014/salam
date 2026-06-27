@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   defaultSalesListUrlState,
   parseSalesListSearchParams,
+  salesListStateToApiFilters,
   serializeSalesListFiltersForStorage,
   toSalesListSearchParams,
 } from '@/pages/sales/salesListSearchParams'
+import { birthYearForLeadsApi } from '@/pages/sales/salesConstants'
 
 function roundTrip(initial: ReturnType<typeof defaultSalesListUrlState>) {
   const p = toSalesListSearchParams(initial)
@@ -30,6 +32,10 @@ describe('salesListSearchParams', () => {
       gender: 'Male',
       birthYear: '2000',
       maritalStatus: 'Never married',
+      state: 'Uttar Pradesh',
+      city: 'Lucknow',
+      pool: 'true' as const,
+      sort: 'leadScore' as const,
     }
     expect(roundTrip(state)).toEqual(state)
   })
@@ -43,10 +49,35 @@ describe('salesListSearchParams', () => {
     expect(roundTrip(state)).toEqual(state)
   })
 
-  /** Out-of-range birth year is still preserved in URL state; SalesPage omits it from the API to avoid 400 */
+  it('preserves trailing space in maritalStatus while typing', () => {
+    const state = {
+      ...defaultSalesListUrlState(),
+      maritalStatus: 'Never ',
+    }
+    expect(roundTrip(state)).toEqual(state)
+  })
+
   it('preserves out-of-range birthYear string from URL', () => {
     const parsed = parseSalesListSearchParams(new URLSearchParams('birthYear=1899'))
     expect(parsed.birthYear).toBe('1899')
+  })
+
+  it('maps pool and assignedToMe to API filters', () => {
+    const parsed = {
+      ...defaultSalesListUrlState(),
+      pool: 'true' as const,
+      assignedToMe: 'true' as const,
+    }
+    const api = salesListStateToApiFilters(parsed, 20)
+    expect(api.pool).toBe(true)
+    expect(api.assignedToMe).toBe(true)
+  })
+
+  it('omits invalid birthYear from API filters', () => {
+    const parsed = { ...defaultSalesListUrlState(), birthYear: '1800' }
+    expect(salesListStateToApiFilters(parsed, 20).birthYear).toBeUndefined()
+    expect(birthYearForLeadsApi('1800')).toBeUndefined()
+    expect(birthYearForLeadsApi('2000')).toBe(2000)
   })
 
   it('round-trips datetime-local fragments in URL', () => {
@@ -74,6 +105,13 @@ describe('salesListSearchParams', () => {
     expect(parsed.status).toBe(d.status)
     expect(parsed.accountStatus).toBe(d.accountStatus)
     expect(parsed.profileStatus).toBe(d.profileStatus)
+  })
+
+  it('accepts IN_PROCESS and CONVERTED status filters', () => {
+    for (const status of ['IN_PROCESS', 'CONVERTED'] as const) {
+      const parsed = parseSalesListSearchParams(new URLSearchParams(`status=${status}`))
+      expect(parsed.status).toBe(status)
+    }
   })
 
   it('serializeSalesListFiltersForStorage returns empty for defaults', () => {

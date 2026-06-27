@@ -316,11 +316,23 @@ export interface AdminReportSearchResponse {
 
 export type AdminSalesStatus =
   | 'CALL_REMAINING'
+  | 'IN_PROCESS'
   | 'ALREADY_CALLED'
   | 'CALL_NOT_PICKED'
   | 'CALL_BACK_LATER'
   | 'INTERESTED'
   | 'NOT_INTERESTED'
+  | 'CONVERTED'
+
+export type AdminSalesOutcomeReason =
+  | 'PRICE_ISSUE'
+  | 'NOT_LOOKING_NOW'
+  | 'WRONG_NUMBER'
+  | 'NO_RESPONSE'
+  | 'ALREADY_MARRIED'
+  | 'COMPETITOR'
+  | 'LANGUAGE_BARRIER'
+  | 'OTHER'
 
 export interface AdminSalesNoteEntry {
   text: string
@@ -346,6 +358,10 @@ export interface AdminSalesLeadSummary {
   followUpAt: IsoInstant | null
   lastCalledAt: IsoInstant | null
   assignedToAdminId: string | null
+  claimedAt: IsoInstant | null
+  outcomeReason: AdminSalesOutcomeReason | null
+  convertedAt: IsoInstant | null
+  leadScore: number
   updatedAt: IsoInstant | null
 }
 
@@ -376,6 +392,10 @@ export interface AdminSalesLeadDetailResponse {
   followUpAt: IsoInstant | null
   lastCalledAt: IsoInstant | null
   assignedToAdminId: string | null
+  claimedAt: IsoInstant | null
+  outcomeReason: AdminSalesOutcomeReason | null
+  convertedAt: IsoInstant | null
+  leadScore: number
   salesCreatedAt: IsoInstant | null
   salesUpdatedAt: IsoInstant | null
 }
@@ -383,6 +403,7 @@ export interface AdminSalesLeadDetailResponse {
 export interface UpdateSalesStatusRequest {
   status: AdminSalesStatus
   lastCalledAt?: IsoInstant | null
+  outcomeReason?: AdminSalesOutcomeReason | null
 }
 
 export interface UpdateSalesNoteRequest {
@@ -392,6 +413,132 @@ export interface UpdateSalesNoteRequest {
 
 export interface UpdateSalesFollowUpRequest {
   followUpAt?: IsoInstant | null
+}
+
+export interface AssignSalesLeadRequest {
+  assignedToAdminId?: string | null
+}
+
+export type AdminSalesActivityType =
+  | 'CLAIMED'
+  | 'RELEASED'
+  | 'STATUS_CHANGED'
+  | 'NOTE_ADDED'
+  | 'FOLLOW_UP_SET'
+  | 'WHATSAPP_SENT'
+  | 'CONVERTED'
+  | 'ASSIGNED'
+
+export interface AdminSalesActivityEntry {
+  id: string
+  userId: string
+  type: AdminSalesActivityType
+  message: string
+  metadata: Record<string, unknown>
+  actorEmployeeId: string | null
+  createdAt: IsoInstant
+}
+
+export interface AdminSalesActivitySearchResponse {
+  items: AdminSalesActivityEntry[]
+  page: number
+  size: number
+  total: number
+}
+
+export interface CreateAdminSalesCommunicationRequest {
+  channel: string
+  templateName?: string | null
+  note?: string | null
+}
+
+export interface AdminSalesConversionSummary {
+  userId: string
+  memberId: string | null
+  fullName: string | null
+  phone: string | null
+  assignedToAdminId: string | null
+  convertedAt: IsoInstant | null
+  subscribedAt: IsoInstant | null
+}
+
+export interface AdminSalesConversionSearchResponse {
+  items: AdminSalesConversionSummary[]
+  page: number
+  size: number
+  total: number
+}
+
+export interface AdminSalesAgentPerformance {
+  employeeId: string
+  name: string
+  claimedCount: number
+  callsCount: number
+  interestedCount: number
+  convertedCount: number
+  overdueFollowUps: number
+  avgMinutesToFirstCall: number | null
+}
+
+export interface AdminSalesAgentPerformanceResponse {
+  items: AdminSalesAgentPerformance[]
+}
+
+export interface AdminSalesSavedViewSummary {
+  id: string
+  ownerEmployeeId: string
+  name: string
+  filtersJson: string
+  createdAt: IsoInstant
+  updatedAt: IsoInstant
+}
+
+export interface AdminSalesSavedViewSearchResponse {
+  items: AdminSalesSavedViewSummary[]
+  page: number
+  size: number
+  total: number
+}
+
+export interface CreateAdminSalesSavedViewRequest {
+  name: string
+  filtersJson: string
+}
+
+export interface UpdateAdminSalesSavedViewRequest {
+  name?: string
+  filtersJson?: string
+}
+
+export type AdminStaffRole = 'SUPER_ADMIN' | 'SALES_MANAGER' | 'SALES_AGENT' | 'SUPPORT'
+
+export type AdminStaffStatus = 'ACTIVE' | 'DISABLED'
+
+export interface AdminStaffSummary {
+  id: string
+  employeeId: string
+  name: string
+  email: string
+  phone: string | null
+  role: AdminStaffRole
+  status: AdminStaffStatus
+  createdAt: IsoInstant | null
+  updatedAt: IsoInstant | null
+  lastLoginAt: IsoInstant | null
+}
+
+export interface AdminStaffLoginResponse {
+  accessToken: string
+  expiresAt: IsoInstant
+  scope: string
+  roles: string[]
+  sessionId: string
+  staff: AdminStaffSummary
+}
+
+export interface AdminStaffLoginRequest {
+  email: string
+  password: string
 }
 
 // --- Filters ---
@@ -446,8 +593,42 @@ export interface SalesLeadsFilters {
   birthYear?: number
   /** Exact match on basicDetails.maritalStatus (trimmed, case-sensitive) */
   maritalStatus?: string
+  state?: string
+  city?: string
+  pool?: boolean
+  /** Staff employeeId, or literal UNASSIGNED */
+  assignedToAdminId?: string
+  assignedToMe?: boolean
+  sort?: 'leadScore'
   subscribed?: boolean
   verifiedProfile?: boolean
+  page?: number
+  size?: number
+}
+
+export interface SalesFollowUpsFilters {
+  bucket?: 'due_today' | 'overdue' | 'upcoming'
+  assignedToMe?: boolean
+  page?: number
+  size?: number
+}
+
+export interface SalesConversionsFilters {
+  start?: IsoInstant
+  end?: IsoInstant
+  assignedToAdminId?: string
+  page?: number
+  size?: number
+}
+
+export interface SalesAgentPerformanceFilters {
+  start?: IsoInstant
+  end?: IsoInstant
+  employeeId?: string
+}
+
+export interface SalesActivitiesFilters {
+  type?: AdminSalesActivityType
   page?: number
   size?: number
 }

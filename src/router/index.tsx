@@ -24,6 +24,9 @@ const UserDetailPage = lazy(() => import('@/pages/users/UserDetailPage'))
 const ReportsPage = lazy(() => import('@/pages/reports/ReportsPage'))
 const ReportDetailPage = lazy(() => import('@/pages/reports/ReportDetailPage'))
 const SalesPage = lazy(() => import('@/pages/sales/SalesPage'))
+const SalesFollowUpsPage = lazy(() => import('@/pages/sales/SalesFollowUpsPage'))
+const SalesConversionsPage = lazy(() => import('@/pages/sales/SalesConversionsPage'))
+const SalesPerformancePage = lazy(() => import('@/pages/sales/SalesPerformancePage'))
 const SalesLeadDetailPage = lazy(() => import('@/pages/sales/SalesLeadDetailPage'))
 
 function LoadingRoute() {
@@ -82,6 +85,9 @@ export const router = createBrowserRouter([
           { path: routes.reports.slice(1), element: <ReportsPage /> },
           { path: 'reports/:reportId', element: <ReportDetailPage /> },
           { path: routes.sales.slice(1), element: <SalesPage /> },
+          { path: 'sales/follow-ups', element: <SalesFollowUpsPage /> },
+          { path: 'sales/conversions', element: <SalesConversionsPage /> },
+          { path: 'sales/performance', element: <SalesPerformancePage /> },
           { path: 'sales/:userId', element: <SalesLeadDetailPage /> },
         ],
       },
