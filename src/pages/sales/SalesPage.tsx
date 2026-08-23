@@ -19,6 +19,10 @@ import {
   salesSummaryMetricLabel,
 } from '@/pages/sales/salesConstants'
 import {
+  INDIA_MIN_INCOME_BANDS,
+  INTL_MIN_INCOME_BANDS,
+} from '@/pages/sales/salesIncomeBands'
+import {
   SALES_LIST_SEARCH_STORAGE_KEY,
   activeSalesListPreset,
   parseSalesListSearchParams,
@@ -228,7 +232,7 @@ export default function SalesPage() {
                 />
               </label>
               <label className="block min-w-0 text-sm text-slate-600">
-                <span className="mb-1 block font-medium text-slate-800">Birth year</span>
+                <span className="mb-1 block font-medium text-slate-800">Born on or before (year)</span>
                 <Input
                   id="sales-filter-birth-year"
                   type="text"
@@ -237,11 +241,15 @@ export default function SalesPage() {
                   placeholder="e.g. 2000"
                   value={parsed.birthYear}
                   onChange={(event) => setFilters({ birthYear: event.target.value, page: 0 })}
-                  aria-label="Filter by birth year"
+                  aria-label="Filter by maximum birth year"
                 />
                 {parsed.birthYear.trim() !== '' && birthYearForLeadsApi(parsed.birthYear) === undefined ? (
                   <span className="mt-1 block text-xs text-amber-800">
                     Enter a whole year between 1900 and 2100 (digits only).
+                  </span>
+                ) : parsed.birthYear.trim() !== '' ? (
+                  <span className="mt-1 block text-xs text-slate-500">
+                    Profiles born in this year or earlier (DOB ≤ YYYY-12-31).
                   </span>
                 ) : null}
               </label>
@@ -274,6 +282,34 @@ export default function SalesPage() {
                   onChange={(event) => setFilters({ city: event.target.value, page: 0 })}
                   aria-label="Filter by city exact match"
                 />
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">Minimum income</span>
+                <Select
+                  id="sales-filter-min-income"
+                  value={parsed.minIncomeBandId}
+                  onChange={(event) => setFilters({ minIncomeBandId: event.target.value, page: 0 })}
+                  aria-label="Filter by minimum income band"
+                >
+                  <option value="">Any</option>
+                  <optgroup label="India">
+                    {INDIA_MIN_INCOME_BANDS.map((band) => (
+                      <option key={band.id} value={band.id}>
+                        {band.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="International">
+                    {INTL_MIN_INCOME_BANDS.map((band) => (
+                      <option key={band.id} value={band.id}>
+                        {band.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                </Select>
+                <span className="mt-1 block text-xs text-slate-500">
+                  Profiles at or above this band; profiles without income are hidden.
+                </span>
               </label>
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Subscribed</span>
@@ -424,6 +460,7 @@ export default function SalesPage() {
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">Assigned</th>
                   <th className="px-3 py-2">Score</th>
+                  <th className="px-3 py-2">Income</th>
                   <th className="px-3 py-2">Outcome</th>
                   <th className="px-3 py-2">Note</th>
                   <th className="px-3 py-2">Follow-up</th>
@@ -439,6 +476,7 @@ export default function SalesPage() {
                     <td className="px-3 py-2">{lead.salesStatus}</td>
                     <td className="px-3 py-2">{lead.assignedToAdminId ?? '--'}</td>
                     <td className="px-3 py-2">{lead.leadScore ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.incomeLabel ?? '--'}</td>
                     <td className="px-3 py-2">{lead.outcomeReason ?? '--'}</td>
                     <td className="max-w-[200px] px-3 py-2">{lead.note || '--'}</td>
                     <td className="px-3 py-2">{formatDateTime(lead.followUpAt)}</td>

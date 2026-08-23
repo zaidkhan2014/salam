@@ -48,7 +48,7 @@ export function statusRequiresOutcomeReason(status: AdminSalesStatus): boolean {
   return STATUSES_REQUIRING_OUTCOME_REASON.includes(status)
 }
 
-/** Include in GET /sales/leads only when a valid year (1900–2100) to avoid API 400 */
+/** Include in GET /sales/leads only when valid (1900–2100): maximum birth year, born on or before Dec 31 */
 export function birthYearForLeadsApi(raw: string): number | undefined {
   const t = raw.trim()
   if (!t) return undefined

@@ -1,5 +1,6 @@
 import type { AccountStatus, AdminSalesStatus, ProfileStatus, SalesLeadsFilters } from '@/api/types'
 import { birthYearForLeadsApi } from '@/pages/sales/salesConstants'
+import { isValidMinIncomeBandId } from '@/pages/sales/salesIncomeBands'
 import { toUtcIso } from '@/utils/date'
 
 /** sessionStorage key for last Sales list query string (no leading `?`). */
@@ -34,6 +35,7 @@ export interface SalesListUrlState {
   maritalStatus: string
   state: string
   city: string
+  minIncomeBandId: string
   pool: '' | 'true'
   assignedToMe: '' | 'true'
   assignedToAdminId: string
@@ -57,6 +59,7 @@ export const defaultSalesListUrlState = (): SalesListUrlState => ({
   maritalStatus: '',
   state: '',
   city: '',
+  minIncomeBandId: '',
   pool: '',
   assignedToMe: '',
   assignedToAdminId: '',
@@ -98,6 +101,9 @@ export function parseSalesListSearchParams(searchParams: URLSearchParams): Sales
   const sortRaw = searchParams.get('sort')
   const sort: SalesListUrlState['sort'] = sortRaw === 'leadScore' ? 'leadScore' : ''
 
+  const minIncomeRaw = searchParams.get('minIncomeBandId') ?? ''
+  const minIncomeBandId = isValidMinIncomeBandId(minIncomeRaw) ? minIncomeRaw : ''
+
   return {
     start: searchParams.get('start') ?? '',
     end: searchParams.get('end') ?? '',
@@ -112,6 +118,7 @@ export function parseSalesListSearchParams(searchParams: URLSearchParams): Sales
     maritalStatus: searchParams.get('maritalStatus') ?? '',
     state: searchParams.get('state') ?? '',
     city: searchParams.get('city') ?? '',
+    minIncomeBandId,
     pool: parseTriFlag(searchParams.get('pool')),
     assignedToMe: parseTriFlag(searchParams.get('assignedToMe')),
     assignedToAdminId: searchParams.get('assignedToAdminId') ?? '',
@@ -140,6 +147,7 @@ export function toSalesListSearchParams(state: SalesListUrlState): URLSearchPara
   if (state.maritalStatus.trim()) p.set('maritalStatus', state.maritalStatus)
   if (state.state.trim()) p.set('state', state.state.trim())
   if (state.city.trim()) p.set('city', state.city.trim())
+  if (isValidMinIncomeBandId(state.minIncomeBandId)) p.set('minIncomeBandId', state.minIncomeBandId)
   if (state.pool === 'true') p.set('pool', 'true')
   if (state.assignedToMe === 'true') p.set('assignedToMe', 'true')
   if (state.assignedToAdminId.trim()) p.set('assignedToAdminId', state.assignedToAdminId.trim())
@@ -171,6 +179,7 @@ export function salesListStateToApiFilters(parsed: SalesListUrlState, pageSize: 
     maritalStatus: parsed.maritalStatus.trim() || undefined,
     state: parsed.state.trim() || undefined,
     city: parsed.city.trim() || undefined,
+    minIncomeBandId: isValidMinIncomeBandId(parsed.minIncomeBandId) ? parsed.minIncomeBandId : undefined,
     pool: parsed.pool === 'true' ? true : undefined,
     assignedToMe: parsed.assignedToMe === 'true' ? true : undefined,
     assignedToAdminId: parsed.assignedToAdminId.trim() || undefined,

@@ -362,6 +362,8 @@ export interface AdminSalesLeadSummary {
   outcomeReason: AdminSalesOutcomeReason | null
   convertedAt: IsoInstant | null
   leadScore: number
+  incomeLabel?: string | null
+  incomePerYearUsd?: number | null
   updatedAt: IsoInstant | null
 }
 
@@ -589,12 +591,14 @@ export interface SalesLeadsFilters {
   accountStatus?: AccountStatus
   /** Exact match on basicDetails.gender (trimmed) */
   gender?: string
-  /** Calendar year 1900–2100; matches dateOfBirth ISO yyyy-MM-dd by year prefix */
+  /** Maximum birth year (inclusive) — born on or before Dec 31 of that year */
   birthYear?: number
   /** Exact match on basicDetails.maritalStatus (trimmed, case-sensitive) */
   maritalStatus?: string
   state?: string
   city?: string
+  /** Hardcoded band id e.g. INC_IN_30_40 — see salesIncomeBands.ts */
+  minIncomeBandId?: string
   pool?: boolean
   /** Staff employeeId, or literal UNASSIGNED */
   assignedToAdminId?: string
