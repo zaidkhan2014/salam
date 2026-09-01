@@ -51,6 +51,55 @@ export interface AdminMetricsResponse {
   metrics: AdminMetricCard[]
 }
 
+export interface GenderSnapshot {
+  total: number
+  male: number
+  female: number
+  unknown: number
+  femalePercent: number
+  malePercent: number
+  maleToFemaleRatio: string
+}
+
+export interface GenderTrendPoint {
+  bucket: string
+  male: number
+  female: number
+  unknown: number
+  total: number
+  femalePercent: number
+}
+
+export interface GenderCohortStats {
+  snapshot: GenderSnapshot
+  cumulativeTrend: GenderTrendPoint[]
+  inflowTrend: GenderTrendPoint[]
+  byProfileStatus: Record<string, GenderSnapshot>
+}
+
+export interface CityGenderStats {
+  city: string
+  total: number
+  male: number
+  female: number
+  unknown: number
+  femalePercent: number
+}
+
+export interface CityDistributionStats {
+  total: number
+  cities: CityGenderStats[]
+}
+
+export interface AdminGenderMonitoringResponse {
+  start: IsoInstant
+  end: IsoInstant
+  granularity: Granularity
+  approved: GenderCohortStats
+  onboardingComplete: GenderCohortStats
+  cityDistribution: CityDistributionStats
+}
+
 /** Expected metric keys from `GET …/analytics/otp` (each backed by auth_info timestamps). */
 export type OtpAnalyticsMetricKey = 'otp_requested' | 'otp_success' | 'otp_failed'
 
@@ -549,6 +598,10 @@ export interface AnalyticsFilters {
   start?: IsoInstant
   end?: IsoInstant
   granularity?: GranularityInput
+}
+
+export interface GenderMonitoringFilters extends AnalyticsFilters {
+  cityLimit?: number
 }
 
 export interface RetentionFilters {

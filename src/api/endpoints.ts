@@ -11,6 +11,7 @@ export const adminEndpoints = {
     chat: `${ADMIN_API_BASE}/analytics/chat`,
     safety: `${ADMIN_API_BASE}/analytics/safety`,
     demographics: `${ADMIN_API_BASE}/analytics/demographics`,
+    genderMonitoring: `${ADMIN_API_BASE}/analytics/gender-monitoring`,
     retention: `${ADMIN_API_BASE}/analytics/retention`,
     lifeTogether: `${ADMIN_API_BASE}/analytics/life-together`,
     selfie: `${ADMIN_API_BASE}/analytics/selfie`,

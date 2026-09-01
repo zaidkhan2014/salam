@@ -1,0 +1,676 @@
+# Gender & City Monitoring API — client integration guide
+
+This document is for the **admin web client** building gender-ratio and city-distribution dashboards.
+
+Use this endpoint instead of `GET /api/admin/analytics/demographics` for gender monitoring. The demographics endpoint only filters by profile `createdAt` and does not expose the cohort filters, precomputed ratios, or trend series needed for daily monitoring.
+
+**Related:** [`FRONTEND_ADMIN_API_CONTRACT.md`](./FRONTEND_ADMIN_API_CONTRACT.md) — admin auth, base URL, and shared conventions.
+
+---
+
+## Summary
+
+| Item | Detail |
+|------|--------|
+| Endpoint | `GET /api/admin/analytics/gender-monitoring` |
+| Auth | Admin Bearer JWT (`ROLE_ADMIN`) — same as other `/api/admin/analytics/*` routes |
+| Purpose | Monitor male/female ratio and city distribution for onboarding-complete profiles |
+| Default window | Last **30 days** (`start` omitted → `end - 30d`) |
+| Deleted accounts | **Excluded** (`accountStatus != DELETED`) on every query |
+
+---
+
+## Endpoint
+
+```
+GET /api/admin/analytics/gender-monitoring
+```
+
+### Query parameters
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `start` | ISO-8601 instant | No | `end - 30 days` | Start of the analytics window (inclusive). Used for **trends** and **city distribution**. |
+| `end` | ISO-8601 instant | No | `now` | End of the analytics window (exclusive). |
+| `granularity` | `daily` \| `weekly` \| `monthly` | No | `daily` | Bucket size for `inflowTrend` and `cumulativeTrend`. Case-insensitive. |
+| `cityLimit` | integer | No | `20` | Top N cities by total count; remaining cities roll into `"Other"`. Minimum effective value is `1`. |
+
+### Example requests
+
+```http
+GET /api/admin/analytics/gender-monitoring
+GET /api/admin/analytics/gender-monitoring?start=2026-08-01T00:00:00Z&end=2026-09-01T00:00:00Z
+GET /api/admin/analytics/gender-monitoring?start=2026-08-01T00:00:00Z&end=2026-09-01T00:00:00Z&granularity=weekly&cityLimit=15
+```
+
+### Validation
+
+- `start` must be **before** `end`. Otherwise the API returns **400** with `"start must be before end"`.
+
+---
+
+## Critical: what uses the date range?
+
+The response uses a **hybrid** date model. Misreading this is the most common integration mistake.
+
+| Section | Scoped to `start`–`end`? | Filter / date field | What it represents |
+|---------|---------------------------|---------------------|-------------------|
+| `approved.snapshot` | **No** (all-time) | Onboarding complete + approved + not deleted | Current approved pool **right now** |
+| `onboardingComplete.snapshot` | **No** (all-time) | Onboarding complete + not deleted (any profile status) | Current onboarded pool **right now** |
+| `*.inflowTrend` | **Yes** | `onboardingCompletedAt` in `[start, end)` | New onboarding completions per bucket |
+| `*.cumulativeTrend` | **Yes** (buckets) | Built from inflow + baseline before `start` | Pool size at end of each bucket |
+| `onboardingComplete.byProfileStatus` | **No** (all-time) | Grouped by `profileStatus` | Current approved / pending / rejected split |
+| `cityDistribution` | **Yes** | `createdAt` in `[start, end)` + approved + onboarded | Profiles **registered** in the window |
+
+**Rule of thumb for the client:**
+
+- **Headline KPI cards and pie charts** → use `snapshot` fields (not filtered by the selected date range).
+- **Line charts and bar charts over time** → use `inflowTrend` or `cumulativeTrend` (filtered by the selected range).
+- **City chart** → use `cityDistribution` (registered in the selected range).
+
+---
+
+## Cohorts explained
+
+The response contains two gender cohorts with the same shape (`GenderCohortStats`):
+
+### 1. `approved`
+
+Profiles where:
+
+- `onboardingComplete = true`
+- `profileStatus = APPROVED`
+- `accountStatus != DELETED`
+
+Use this for the **primary** gender-ratio monitoring (the pool that can appear in the feed).
+
+### 2. `onboardingComplete`
+
+Profiles where:
+
+- `onboardingComplete = true`
+- `accountStatus != DELETED`
+- **Any** `profileStatus` (approved, pending, or rejected)
+
+Use this to compare the full onboarded funnel vs the approved subset. Only this cohort includes `byProfileStatus`.
+
+---
+
+## Gender normalization
+
+Backend maps `basicDetails.gender` as follows:
+
+| Raw value | Normalized bucket |
+|-----------|-------------------|
+| `"Male"` (case-insensitive) | `male` |
+| `"Female"` (case-insensitive) | `female` |
+| `null`, blank, or anything else | `unknown` |
+
+All counts, percentages, and charts should treat `unknown` as a third segment when present (usually small).
+
+---
+
+## Response shape
+
+### Top-level: `AdminGenderMonitoringResponse`
+
+```json
+{
+  "start": "2026-08-03T00:00:00Z",
+  "end": "2026-09-02T00:00:00Z",
+  "granularity": "DAILY",
+  "approved": { "...": "GenderCohortStats" },
+  "onboardingComplete": { "...": "GenderCohortStats" },
+  "cityDistribution": { "...": "CityDistributionStats" }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `start` | ISO instant | Resolved start of the request window |
+| `end` | ISO instant | Resolved end of the request window |
+| `granularity` | `"DAILY"` \| `"WEEKLY"` \| `"MONTHLY"` | Bucket granularity used for trend arrays |
+| `approved` | `GenderCohortStats` | Approved + onboarded cohort |
+| `onboardingComplete` | `GenderCohortStats` | All onboarded cohort |
+| `cityDistribution` | `CityDistributionStats` | City breakdown for the selected window |
+
+---
+
+### `GenderCohortStats`
+
+```json
+{
+  "snapshot": { "...": "GenderSnapshot" },
+  "cumulativeTrend": [ { "...": "GenderTrendPoint" } ],
+  "inflowTrend": [ { "...": "GenderTrendPoint" } ],
+  "byProfileStatus": {
+    "APPROVED": { "...": "GenderSnapshot" },
+    "PENDING": { "...": "GenderSnapshot" },
+    "REJECTED": { "...": "GenderSnapshot" }
+  }
+}
+```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `snapshot` | `GenderSnapshot` | All-time current pool for this cohort |
+| `cumulativeTrend` | `GenderTrendPoint[]` | One point per bucket in `[start, end)`; includes baseline before `start` |
+| `inflowTrend` | `GenderTrendPoint[]` | One point per bucket; only **new** completions in that bucket |
+| `byProfileStatus` | `Record<string, GenderSnapshot>` | **Only populated on `onboardingComplete`**. Empty `{}` on `approved`. Keys are enum names: `APPROVED`, `PENDING`, `REJECTED`. |
+
+Trend arrays are **dense**: every bucket in the range is present, including buckets with zero new completions.
+
+---
+
+### `GenderSnapshot`
+
+```json
+{
+  "total": 450,
+  "male": 410,
+  "female": 38,
+  "unknown": 2,
+  "femalePercent": 8.4,
+  "malePercent": 91.1,
+  "maleToFemaleRatio": "10.8:1"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total` | number | `male + female + unknown` |
+| `male` | number | Count of male profiles |
+| `female` | number | Count of female profiles |
+| `unknown` | number | Count with missing or unrecognized gender |
+| `femalePercent` | number | `female / total * 100`, rounded to **1 decimal**; `0` if `total = 0` |
+| `malePercent` | number | `male / total * 100`, rounded to **1 decimal** |
+| `maleToFemaleRatio` | string | `"X.X:1"` format, or `"N/A"` when `female = 0` |
+
+---
+
+### `GenderTrendPoint`
+
+Same count fields as `GenderSnapshot`, plus a time bucket:
+
+```json
+{
+  "bucket": "2026-08-15",
+  "male": 5,
+  "female": 1,
+  "unknown": 0,
+  "total": 6,
+  "femalePercent": 16.7
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `bucket` | string | Time bucket label. Format depends on `granularity` (see below). |
+| `male`, `female`, `unknown`, `total` | number | Counts for that bucket |
+| `femalePercent` | number | Female share within the bucket |
+
+#### Bucket label formats
+
+| `granularity` | `bucket` example | Meaning |
+|---------------|------------------|---------|
+| `DAILY` | `"2026-08-15"` | UTC calendar day (`yyyy-MM-dd`) |
+| `WEEKLY` | `"2026-W33"` | ISO week (`YYYY-'W'ww`) |
+| `MONTHLY` | `"2026-08"` | UTC calendar month (`yyyy-MM`) |
+
+Use `bucket` directly as the x-axis label. Parse as opaque strings unless you need custom formatting.
+
+---
+
+### `CityDistributionStats`
+
+```json
+{
+  "total": 62,
+  "cities": [
+    {
+      "city": "Mumbai",
+      "total": 12,
+      "male": 10,
+      "female": 2,
+      "unknown": 0,
+      "femalePercent": 16.7
+    },
+    {
+      "city": "Other",
+      "total": 5,
+      "male": 4,
+      "female": 1,
+      "unknown": 0,
+      "femalePercent": 20.0
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total` | number | Sum of all city totals in the window (before top-N rollup) |
+| `cities` | `CityGenderStats[]` | Sorted by `total` descending; at most `cityLimit + 1` entries (extra bucket = `"Other"`) |
+
+#### `CityGenderStats`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `city` | string | City name from profile. Blank/null → `"Unknown"`. |
+| `total` | number | `male + female + unknown` for this city |
+| `male`, `female`, `unknown` | number | Gender counts |
+| `femalePercent` | number | `female / total * 100`, 1 decimal |
+
+#### City filter (important)
+
+City data includes only profiles that are:
+
+- `onboardingComplete = true`
+- `profileStatus = APPROVED`
+- `accountStatus != DELETED`
+- `createdAt` in `[start, end)` — **registered** in the selected window
+
+This is **not** the same date field as trends (`onboardingCompletedAt`). A user can register in August and complete onboarding in September; they appear in city stats for August but inflow trends for September.
+
+---
+
+## Full example response
+
+```json
+{
+  "start": "2026-08-03T00:00:00Z",
+  "end": "2026-09-02T00:00:00Z",
+  "granularity": "DAILY",
+  "approved": {
+    "snapshot": {
+      "total": 450,
+      "male": 410,
+      "female": 38,
+      "unknown": 2,
+      "femalePercent": 8.4,
+      "malePercent": 91.1,
+      "maleToFemaleRatio": "10.8:1"
+    },
+    "cumulativeTrend": [
+      {
+        "bucket": "2026-08-03",
+        "male": 400,
+        "female": 35,
+        "unknown": 2,
+        "total": 437,
+        "femalePercent": 8.0
+      },
+      {
+        "bucket": "2026-08-04",
+        "male": 401,
+        "female": 35,
+        "unknown": 2,
+        "total": 438,
+        "femalePercent": 8.0
+      }
+    ],
+    "inflowTrend": [
+      {
+        "bucket": "2026-08-03",
+        "male": 3,
+        "female": 1,
+        "unknown": 0,
+        "total": 4,
+        "femalePercent": 25.0
+      },
+      {
+        "bucket": "2026-08-04",
+        "male": 1,
+        "female": 0,
+        "unknown": 0,
+        "total": 1,
+        "femalePercent": 0.0
+      }
+    ],
+    "byProfileStatus": {}
+  },
+  "onboardingComplete": {
+    "snapshot": {
+      "total": 520,
+      "male": 460,
+      "female": 55,
+      "unknown": 5,
+      "femalePercent": 10.6,
+      "malePercent": 88.5,
+      "maleToFemaleRatio": "8.4:1"
+    },
+    "cumulativeTrend": [],
+    "inflowTrend": [],
+    "byProfileStatus": {
+      "APPROVED": {
+        "total": 450,
+        "male": 410,
+        "female": 38,
+        "unknown": 2,
+        "femalePercent": 8.4,
+        "malePercent": 91.1,
+        "maleToFemaleRatio": "10.8:1"
+      },
+      "PENDING": {
+        "total": 40,
+        "male": 35,
+        "female": 5,
+        "unknown": 0,
+        "femalePercent": 12.5,
+        "malePercent": 87.5,
+        "maleToFemaleRatio": "7.0:1"
+      },
+      "REJECTED": {
+        "total": 30,
+        "male": 15,
+        "female": 12,
+        "unknown": 3,
+        "femalePercent": 40.0,
+        "malePercent": 50.0,
+        "maleToFemaleRatio": "1.3:1"
+      }
+    }
+  },
+  "cityDistribution": {
+    "total": 62,
+    "cities": [
+      {
+        "city": "Mumbai",
+        "total": 12,
+        "male": 10,
+        "female": 2,
+        "unknown": 0,
+        "femalePercent": 16.7
+      },
+      {
+        "city": "Delhi",
+        "total": 8,
+        "male": 7,
+        "female": 1,
+        "unknown": 0,
+        "femalePercent": 12.5
+      },
+      {
+        "city": "Other",
+        "total": 5,
+        "male": 4,
+        "female": 1,
+        "unknown": 0,
+        "femalePercent": 20.0
+      }
+    ]
+  }
+}
+```
+
+---
+
+## Recommended dashboard layout
+
+Suggested page structure for daily gender monitoring:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Date range picker   │  Granularity: Daily / Weekly / Monthly  │
+├─────────────────────────────────────────────────────────────────┤
+│  KPI cards (from approved.snapshot — all-time)                  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐           │
+│  │ Total    │ │ Female % │ │ Male:Fem │ │ Female # │           │
+│  │ 450      │ │ 8.4%     │ │ 10.8:1   │ │ 38       │           │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘           │
+├──────────────────────────────┬──────────────────────────────────┤
+│  Pie: approved male/female   │  Pie: all onboarded male/female  │
+│  (approved.snapshot)         │  (onboardingComplete.snapshot)   │
+├──────────────────────────────┴──────────────────────────────────┤
+│  Line: femalePercent over time (approved.cumulativeTrend)         │
+├─────────────────────────────────────────────────────────────────┤
+│  Stacked bar: daily new male/female (approved.inflowTrend)      │
+├──────────────────────────────┬──────────────────────────────────┤
+│  Stacked bar: status × gender│  Horizontal bar: city × gender   │
+│  (onboardingComplete.        │  (cityDistribution.cities)       │
+│   byProfileStatus)           │                                  │
+└──────────────────────────────┴──────────────────────────────────┘
+```
+
+---
+
+## Graph mapping reference
+
+### 1. Headline KPI cards
+
+**Data:** `approved.snapshot`
+
+| Card | Field | Notes |
+|------|-------|-------|
+| Total approved users | `total` | All-time, not range-scoped |
+| Female % | `femalePercent` | Primary metric to watch daily |
+| Male:Female ratio | `maleToFemaleRatio` | Display as-is; show `"N/A"` when no females |
+| Female count | `female` | Absolute number |
+
+Optional secondary row from `onboardingComplete.snapshot` for comparison.
+
+---
+
+### 2. Pie / donut — current gender split
+
+**Chart type:** Pie or donut (2–3 segments)
+
+| Variant | Data source | Segments |
+|---------|-------------|----------|
+| Approved pool | `approved.snapshot` | `male`, `female`, `unknown` |
+| All onboarded | `onboardingComplete.snapshot` | `male`, `female`, `unknown` |
+
+**Tips:**
+
+- Use `femalePercent` / `malePercent` for labels.
+- Hide `unknown` slice if `unknown === 0`.
+- Add subtitle: *"All-time current pool"* so users do not confuse with the date picker.
+
+---
+
+### 3. Line chart — female % trend (pool health)
+
+**Chart type:** Line (single or dual series)
+
+| Series | Data source | X-axis | Y-axis |
+|--------|-------------|--------|--------|
+| Approved pool female % | `approved.cumulativeTrend` | `bucket` | `femalePercent` |
+| All onboarded female % | `onboardingComplete.cumulativeTrend` | `bucket` | `femalePercent` |
+
+**Why cumulative, not inflow:** Cumulative shows the **overall pool ratio** at each point in time. Inflow only shows new signups per day and can be noisy with small female counts.
+
+**Tips:**
+
+- Show date range in chart title: `{start} – {end}`.
+- Consider a reference line at a target female % if product has one.
+- Tooltip: show `male`, `female`, `total` alongside `femalePercent`.
+
+---
+
+### 4. Stacked bar — daily new completions
+
+**Chart type:** Stacked bar
+
+| Data source | X-axis | Stacks |
+|-------------|--------|--------|
+| `approved.inflowTrend` | `bucket` | `male`, `female`, `unknown` |
+
+**Why inflow:** Answers *"How many new approved users joined each day, and what was the gender mix?"*
+
+**Tips:**
+
+- Good for spotting days with zero female signups.
+- Pair with the cumulative line chart: inflow = daily intake, cumulative = pool composition.
+
+---
+
+### 5. Stacked bar — profile status breakdown
+
+**Chart type:** Stacked bar (horizontal works well)
+
+**Data:** `onboardingComplete.byProfileStatus`
+
+Transform for charting:
+
+```typescript
+const statuses = ["APPROVED", "PENDING", "REJECTED"];
+const series = statuses
+  .filter((s) => data.onboardingComplete.byProfileStatus[s])
+  .map((s) => ({
+    status: s,
+    ...data.onboardingComplete.byProfileStatus[s],
+  }));
+```
+
+| X-axis | Stacks |
+|--------|--------|
+| `status` | `male`, `female`, `unknown` |
+
+**Subtitle:** *"All-time current breakdown"*
+
+---
+
+### 6. City distribution
+
+**Chart type:** Horizontal stacked bar (recommended) or grouped bar
+
+**Data:** `cityDistribution.cities`
+
+| X-axis | Stacks | Sort |
+|--------|--------|------|
+| `city` | `male`, `female`, `unknown` | Already sorted by `total` desc from API |
+
+**Tips:**
+
+- Chart title should include the selected date range: *"Approved signups by city"*.
+- `cityDistribution.total` is the denominator for "X% of signups in this window".
+- Per-city share: `city.total / cityDistribution.total * 100`.
+- `"Other"` aggregates cities outside top N; `"Unknown"` means profile had no city.
+- Tooltip: show `femalePercent` per city to spot cities with better female intake.
+
+---
+
+## `inflowTrend` vs `cumulativeTrend`
+
+| Question | Use |
+|----------|-----|
+| What is the female % of our **entire approved pool** today? | `approved.snapshot.femalePercent` |
+| How has the pool's female % **changed over the last 30 days**? | `approved.cumulativeTrend[].femalePercent` |
+| How many **new** approved users joined each day? | `approved.inflowTrend[].total` |
+| Was yesterday's intake mostly male? | `approved.inflowTrend` stacked bar |
+| Which cities had approved signups this month? | `cityDistribution.cities` |
+
+**Cumulative math (for client debugging):** Each `cumulativeTrend` point = all profiles with `onboardingCompletedAt < end of bucket`, plus cohort filters. The series starts from counts **before** `start` and adds each inflow bucket. That is why the last cumulative point's `femalePercent` may differ slightly from `snapshot.femalePercent` if profiles were approved/rejected or deleted after onboarding during the window.
+
+---
+
+## TypeScript interfaces
+
+```typescript
+type Granularity = "DAILY" | "WEEKLY" | "MONTHLY";
+
+interface GenderSnapshot {
+  total: number;
+  male: number;
+  female: number;
+  unknown: number;
+  femalePercent: number;
+  malePercent: number;
+  maleToFemaleRatio: string; // "10.8:1" or "N/A"
+}
+
+interface GenderTrendPoint {
+  bucket: string;
+  male: number;
+  female: number;
+  unknown: number;
+  total: number;
+  femalePercent: number;
+}
+
+interface GenderCohortStats {
+  snapshot: GenderSnapshot;
+  cumulativeTrend: GenderTrendPoint[];
+  inflowTrend: GenderTrendPoint[];
+  byProfileStatus: Record<string, GenderSnapshot>;
+}
+
+interface CityGenderStats {
+  city: string;
+  total: number;
+  male: number;
+  female: number;
+  unknown: number;
+  femalePercent: number;
+}
+
+interface CityDistributionStats {
+  total: number;
+  cities: CityGenderStats[];
+}
+
+interface AdminGenderMonitoringResponse {
+  start: string; // ISO instant
+  end: string;
+  granularity: Granularity;
+  approved: GenderCohortStats;
+  onboardingComplete: GenderCohortStats;
+  cityDistribution: CityDistributionStats;
+}
+```
+
+---
+
+## Suggested UI controls
+
+| Control | Behavior |
+|---------|----------|
+| Date range picker | Sets `start` and `end`. Presets: Last 7d, Last 30d, Last 90d, This month. |
+| Granularity toggle | Sets `granularity`. Default `daily`. Use `weekly` for ranges > 90 days. |
+| City limit | Optional advanced setting → `cityLimit`. Default 20. |
+| Refresh | Re-fetch on range/granularity change. Snapshots are cheap to re-fetch. |
+| Loading state | Trends and city data depend on range; show skeleton per chart section. |
+
+---
+
+## Difference from `/analytics/demographics`
+
+| | `demographics` (legacy) | `gender-monitoring` (use this) |
+|--|-------------------------|-------------------------------|
+| Filters | `createdAt` in range only | Cohort filters + hybrid date model |
+| Onboarding filter | No | Yes (`onboardingComplete = true`) |
+| Profile status filter | No | Yes (approved cohort + status breakdown) |
+| Deleted accounts | Included | Excluded |
+| Precomputed ratios | No | Yes (`femalePercent`, `maleToFemaleRatio`) |
+| Time series | No | Yes (`inflowTrend`, `cumulativeTrend`) |
+| City gender split | No | Yes (male/female per city) |
+| Response shape | `AdminMetricsResponse` (generic cards) | Dedicated typed response |
+
+---
+
+## Common pitfalls
+
+1. **Using `snapshot` with the date picker label** — Snapshots are all-time. Label them *"Current pool"* not *"In selected period"*.
+2. **Using `cityDistribution` for pool ratio** — City data is registration-based in the window, not the overall pool.
+3. **Comparing city `total` to `approved.snapshot.total`** — City total is only signups in the range; snapshot is all-time.
+4. **Ignoring `unknown`** — Rare but non-zero; omit from pie only when count is 0.
+5. **Parsing weekly buckets as dates** — `"2026-W33"` is an ISO week string, not `yyyy-MM-dd`.
+6. **Empty `byProfileStatus` on `approved`** — Expected. Use `onboardingComplete.byProfileStatus` for status charts.
+
+---
+
+## Error handling
+
+| Status | Cause | Client action |
+|--------|-------|---------------|
+| 400 | `start >= end` | Show validation on date picker |
+| 401 / 403 | Missing or invalid admin token | Redirect to login |
+| 500 | Server error | Retry + error toast |
+
+---
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-09-02 | Initial `gender-monitoring` endpoint and this client guide |

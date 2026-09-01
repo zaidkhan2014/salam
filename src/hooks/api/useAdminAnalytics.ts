@@ -2,7 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import { adminClient } from '@/api/client'
 import { adminEndpoints } from '@/api/endpoints'
 import { cleanQueryParams } from '@/api/params'
-import type { AdminMetricsResponse, AnalyticsFilters, RetentionFilters } from '@/api/types'
+import type {
+  AdminGenderMonitoringResponse,
+  AdminMetricsResponse,
+  AnalyticsFilters,
+  GenderMonitoringFilters,
+  RetentionFilters,
+} from '@/api/types'
 
 export function useOverviewMetrics(filters: AnalyticsFilters) {
   return useQuery({
@@ -82,6 +88,23 @@ export function useDemographicsMetrics(filters: Omit<AnalyticsFilters, 'granular
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.demographics, {
         params: cleanQueryParams(filters),
+      })
+      return response.data
+    },
+  })
+}
+
+export function useGenderMonitoringMetrics(filters: GenderMonitoringFilters) {
+  return useQuery({
+    queryKey: ['analytics', 'gender-monitoring', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminGenderMonitoringResponse>(adminEndpoints.analytics.genderMonitoring, {
+        params: cleanQueryParams({
+          start: filters.start,
+          end: filters.end,
+          granularity: filters.granularity,
+          cityLimit: filters.cityLimit,
+        }),
       })
       return response.data
     },

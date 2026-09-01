@@ -1,25 +1,44 @@
-import { useState } from 'react'
-import { AnalyticsPageTemplate } from '@/components/metrics/AnalyticsPageTemplate'
-import { useDemographicsMetrics } from '@/hooks/api/useAdminAnalytics'
-import { defaultDateRange } from '@/utils/date'
+import { PageHeader } from '@/components/common/PageHeader'
+import { GenderMonitoringSection } from '@/components/genderMonitoring/GenderMonitoringSection'
+import { DateGranularityControls } from '@/components/metrics/DateGranularityControls'
+import { MetricsSection } from '@/components/metrics/MetricsSection'
+import { useDemographicsMetrics, useGenderMonitoringMetrics } from '@/hooks/api/useAdminAnalytics'
+import { useAnalyticsFilters } from '@/hooks/useAnalyticsFilters'
 
 export default function DemographicsPage() {
-  const defaults = defaultDateRange()
-  const [filters, setFilters] = useState<{ start?: string; end?: string }>({
-    start: defaults.start,
-    end: defaults.end,
+  const { filters, setFilters } = useAnalyticsFilters('daily')
+  const genderMonitoringQuery = useGenderMonitoringMetrics(filters)
+  const demographicsQuery = useDemographicsMetrics({
+    start: filters.start,
+    end: filters.end,
   })
 
-  const query = useDemographicsMetrics(filters)
-
   return (
-    <AnalyticsPageTemplate
-      title="Demographics"
-      description="Top categories by gender, city, and country with optional Other bucket."
-      filters={filters}
-      onFiltersChange={(next) => setFilters({ start: next.start, end: next.end })}
-      query={query}
-      showGranularity={false}
-    />
+    <section className="space-y-4">
+      <PageHeader
+        title="Demographics"
+        description="Gender ratio and city intake monitoring with trend charts for onboarding-complete cohorts."
+      />
+      <DateGranularityControls
+        start={filters.start}
+        end={filters.end}
+        granularity={filters.granularity}
+        onChange={setFilters}
+      />
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-slate-900">Gender monitoring</h2>
+        <p className="text-sm text-slate-600">
+          Snapshot cards are all-time current pool values. Trend and city charts follow the selected range.
+        </p>
+        <GenderMonitoringSection query={genderMonitoringQuery} />
+      </div>
+
+      <div className="space-y-3 border-t border-slate-200 pt-6">
+        <h2 className="text-lg font-semibold text-slate-900">Legacy demographics</h2>
+        <p className="text-sm text-slate-600">Country and category breakdowns from the existing demographics endpoint.</p>
+        <MetricsSection query={demographicsQuery} />
+      </div>
+    </section>
   )
 }
