@@ -26,12 +26,14 @@ function PhotoThumb({ url, alt }: { url: string | null | undefined; alt: string 
     return <span className="text-xs text-slate-400">--</span>
   }
   return (
-    <img
-      src={url}
-      alt={alt}
-      className="h-12 w-12 rounded-md border border-slate-200 object-cover"
-      loading="lazy"
-    />
+    <a href={url} target="_blank" rel="noopener noreferrer" title="Open full size">
+      <img
+        src={url}
+        alt={alt}
+        className="h-12 w-12 rounded-md border border-slate-200 object-cover"
+        loading="lazy"
+      />
+    </a>
   )
 }
 
@@ -352,11 +354,18 @@ export default function ReviewQueuePage() {
                     <div>
                       <p className="mb-1 text-xs font-medium text-slate-500">Live selfie</p>
                       {selected.liveSelfieUrl ? (
-                        <img
-                          src={selected.liveSelfieUrl}
-                          alt="Live selfie"
-                          className="max-h-56 w-full rounded-lg border border-slate-200 object-contain"
-                        />
+                        <a
+                          href={selected.liveSelfieUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Open full size"
+                        >
+                          <img
+                            src={selected.liveSelfieUrl}
+                            alt="Live selfie"
+                            className="max-h-56 w-full rounded-lg border border-slate-200 object-contain"
+                          />
+                        </a>
                       ) : (
                         <p className="text-sm text-slate-400">No selfie URL</p>
                       )}
@@ -364,11 +373,18 @@ export default function ReviewQueuePage() {
                     <div>
                       <p className="mb-1 text-xs font-medium text-slate-500">Reviewed primary</p>
                       {selected.reviewedPrimaryUrl ? (
-                        <img
-                          src={selected.reviewedPrimaryUrl}
-                          alt="Reviewed primary"
-                          className="max-h-56 w-full rounded-lg border border-slate-200 object-contain"
-                        />
+                        <a
+                          href={selected.reviewedPrimaryUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Open full size"
+                        >
+                          <img
+                            src={selected.reviewedPrimaryUrl}
+                            alt="Reviewed primary"
+                            className="max-h-56 w-full rounded-lg border border-slate-200 object-contain"
+                          />
+                        </a>
                       ) : (
                         <p className="text-sm text-slate-400">No primary URL</p>
                       )}
@@ -381,12 +397,19 @@ export default function ReviewQueuePage() {
                         {selected.profile.mediaGallery.items
                           .filter((media) => media.url)
                           .map((media) => (
-                            <img
+                            <a
                               key={media.publicId ?? media.url}
-                              src={media.url ?? undefined}
-                              alt={media.publicId ?? 'Gallery item'}
-                              className="h-16 w-16 rounded-md border border-slate-200 object-cover"
-                            />
+                              href={media.url ?? undefined}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Open full size"
+                            >
+                              <img
+                                src={media.url ?? undefined}
+                                alt={media.publicId ?? 'Gallery item'}
+                                className="h-16 w-16 rounded-md border border-slate-200 object-cover"
+                              />
+                            </a>
                           ))}
                       </div>
                     </div>
