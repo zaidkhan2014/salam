@@ -17,6 +17,7 @@ import {
   Smartphone,
   ThumbsUp,
   ClipboardList,
+  UserCheck,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/useAuth'
 import { cn } from '@/lib/cn'
@@ -37,6 +38,7 @@ const links = [
   { to: routes.otp, label: 'OTP', icon: Smartphone },
   { to: routes.likes, label: 'Likes', icon: ThumbsUp },
   { to: routes.users, label: 'Users', icon: Users },
+  { to: routes.reviewQueue, label: 'Review Queue', icon: UserCheck },
   { to: routes.reports, label: 'Reports', icon: ClipboardList },
   { to: routes.sales, label: 'Sales', icon: Database },
 ]

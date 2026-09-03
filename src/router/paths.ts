@@ -15,6 +15,7 @@ export const routes = {
   likes: '/likes',
   users: '/users',
   userDetail: (userId: string) => `/users/${userId}`,
+  reviewQueue: '/review-queue',
   reports: '/reports',
   reportDetail: (reportId: string) => `/reports/${reportId}`,
   sales: '/sales',

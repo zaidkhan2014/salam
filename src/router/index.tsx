@@ -21,6 +21,7 @@ const OtpPage = lazy(() => import('@/pages/otp/OtpPage'))
 const LikesPage = lazy(() => import('@/pages/likes/LikesPage'))
 const UsersPage = lazy(() => import('@/pages/users/UsersPage'))
 const UserDetailPage = lazy(() => import('@/pages/users/UserDetailPage'))
+const ReviewQueuePage = lazy(() => import('@/pages/review-queue/ReviewQueuePage'))
 const ReportsPage = lazy(() => import('@/pages/reports/ReportsPage'))
 const ReportDetailPage = lazy(() => import('@/pages/reports/ReportDetailPage'))
 const SalesPage = lazy(() => import('@/pages/sales/SalesPage'))
@@ -82,6 +83,7 @@ export const router = createBrowserRouter([
           { path: routes.likes.slice(1), element: <LikesPage /> },
           { path: routes.users.slice(1), element: <UsersPage /> },
           { path: 'users/:userId', element: <UserDetailPage /> },
+          { path: routes.reviewQueue.slice(1), element: <ReviewQueuePage /> },
           { path: routes.reports.slice(1), element: <ReportsPage /> },
           { path: 'reports/:reportId', element: <ReportDetailPage /> },
           { path: routes.sales.slice(1), element: <SalesPage /> },

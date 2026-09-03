@@ -26,6 +26,8 @@ export const adminEndpoints = {
     profileRejected: `${ADMIN_API_BASE}/users/profile-rejected`,
     bioRejected: `${ADMIN_API_BASE}/users/bio-rejected`,
     deleted: `${ADMIN_API_BASE}/users/deleted`,
+    reviewQueue: `${ADMIN_API_BASE}/users/review-queue`,
+    forceApproveReview: (userId: string) => `${ADMIN_API_BASE}/users/${userId}/force-approve-review`,
   },
   reports: {
     list: `${ADMIN_API_BASE}/reports`,
