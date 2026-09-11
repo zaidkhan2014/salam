@@ -11,6 +11,7 @@ vi.mock('recharts', () => {
     ResponsiveContainer: Mock,
     BarChart: Mock,
     Bar: Mock,
+    LabelList: Mock,
     CartesianGrid: Mock,
     XAxis: Mock,
     YAxis: Mock,
