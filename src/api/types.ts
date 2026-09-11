@@ -100,6 +100,23 @@ export interface AdminGenderMonitoringResponse {
   cityDistribution: CityDistributionStats
 }
 
+export interface GeoNameCount {
+  name: string
+  count: number
+}
+
+export interface GeoGenderBreakdown {
+  male: GeoNameCount[]
+  female: GeoNameCount[]
+}
+
+export interface AdminGeoByGenderResponse {
+  maleTotal: number
+  femaleTotal: number
+  cities: GeoGenderBreakdown
+  states: GeoGenderBreakdown
+}
+
 /** Expected metric keys from `GET …/analytics/otp` (each backed by auth_info timestamps). */
 export type OtpAnalyticsMetricKey = 'otp_requested' | 'otp_success' | 'otp_failed'
 

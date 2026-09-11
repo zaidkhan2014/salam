@@ -4,6 +4,7 @@ import { adminEndpoints } from '@/api/endpoints'
 import { cleanQueryParams } from '@/api/params'
 import type {
   AdminGenderMonitoringResponse,
+  AdminGeoByGenderResponse,
   AdminMetricsResponse,
   AnalyticsFilters,
   GenderMonitoringFilters,
@@ -105,6 +106,18 @@ export function useGenderMonitoringMetrics(filters: GenderMonitoringFilters) {
           granularity: filters.granularity,
           cityLimit: filters.cityLimit,
         }),
+      })
+      return response.data
+    },
+  })
+}
+
+export function useGeoByGenderMetrics(limit = 20) {
+  return useQuery({
+    queryKey: ['analytics', 'geo-by-gender', limit],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminGeoByGenderResponse>(adminEndpoints.analytics.geoByGender, {
+        params: cleanQueryParams({ limit }),
       })
       return response.data
     },
