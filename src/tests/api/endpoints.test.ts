@@ -50,6 +50,25 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.sales.summary).toBe('/api/admin/sales/summary')
   })
 
+  it('creates deleted sales endpoints', () => {
+    expect(adminEndpoints.salesDeleted.leads).toBe('/api/admin/sales/deleted/leads')
+    expect(adminEndpoints.salesDeleted.detail('user-1')).toBe('/api/admin/sales/deleted/leads/user-1')
+    expect(adminEndpoints.salesDeleted.updateStatus('user-1')).toBe(
+      '/api/admin/sales/deleted/leads/user-1/status',
+    )
+    expect(adminEndpoints.salesDeleted.claim('user-1')).toBe('/api/admin/sales/deleted/leads/user-1/claim')
+    expect(adminEndpoints.salesDeleted.followUps).toBe('/api/admin/sales/deleted/follow-ups')
+    expect(adminEndpoints.salesDeleted.conversions).toBe('/api/admin/sales/deleted/conversions')
+    expect(adminEndpoints.salesDeleted.agentPerformance).toBe(
+      '/api/admin/sales/deleted/agents/performance',
+    )
+    expect(adminEndpoints.salesDeleted.savedViews).toBe('/api/admin/sales/deleted/saved-views')
+    expect(adminEndpoints.salesDeleted.savedView('view-1')).toBe(
+      '/api/admin/sales/deleted/saved-views/view-1',
+    )
+    expect(adminEndpoints.salesDeleted.summary).toBe('/api/admin/sales/deleted/summary')
+  })
+
   it('exposes auth login endpoint', () => {
     expect(adminEndpoints.authLogin).toBe('/api/admin/auth/login')
   })

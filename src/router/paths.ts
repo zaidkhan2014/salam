@@ -23,4 +23,9 @@ export const routes = {
   salesConversions: '/sales/conversions',
   salesPerformance: '/sales/performance',
   salesLeadDetail: (userId: string) => `/sales/${userId}`,
+  deletedAccounts: '/deleted-accounts',
+  deletedAccountsFollowUps: '/deleted-accounts/follow-ups',
+  deletedAccountsConversions: '/deleted-accounts/conversions',
+  deletedAccountsPerformance: '/deleted-accounts/performance',
+  deletedAccountsLeadDetail: (userId: string) => `/deleted-accounts/${userId}`,
 } as const

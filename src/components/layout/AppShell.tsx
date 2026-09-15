@@ -18,6 +18,7 @@ import {
   ThumbsUp,
   ClipboardList,
   UserCheck,
+  UserX,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/useAuth'
 import { cn } from '@/lib/cn'
@@ -41,6 +42,7 @@ const links = [
   { to: routes.reviewQueue, label: 'Review Queue', icon: UserCheck },
   { to: routes.reports, label: 'Reports', icon: ClipboardList },
   { to: routes.sales, label: 'Sales', icon: Database },
+  { to: routes.deletedAccounts, label: 'Deleted Accounts', icon: UserX },
 ]
 
 export function AppShell() {

@@ -29,6 +29,17 @@ const SalesFollowUpsPage = lazy(() => import('@/pages/sales/SalesFollowUpsPage')
 const SalesConversionsPage = lazy(() => import('@/pages/sales/SalesConversionsPage'))
 const SalesPerformancePage = lazy(() => import('@/pages/sales/SalesPerformancePage'))
 const SalesLeadDetailPage = lazy(() => import('@/pages/sales/SalesLeadDetailPage'))
+const DeletedAccountsPage = lazy(() => import('@/pages/deleted-accounts/DeletedAccountsPage'))
+const DeletedAccountsFollowUpsPage = lazy(() => import('@/pages/deleted-accounts/DeletedAccountsFollowUpsPage'))
+const DeletedAccountsConversionsPage = lazy(
+  () => import('@/pages/deleted-accounts/DeletedAccountsConversionsPage'),
+)
+const DeletedAccountsPerformancePage = lazy(
+  () => import('@/pages/deleted-accounts/DeletedAccountsPerformancePage'),
+)
+const DeletedAccountsLeadDetailPage = lazy(
+  () => import('@/pages/deleted-accounts/DeletedAccountsLeadDetailPage'),
+)
 
 function LoadingRoute() {
   return <div className="p-6 text-sm text-slate-500">Loading page...</div>
@@ -91,6 +102,11 @@ export const router = createBrowserRouter([
           { path: 'sales/conversions', element: <SalesConversionsPage /> },
           { path: 'sales/performance', element: <SalesPerformancePage /> },
           { path: 'sales/:userId', element: <SalesLeadDetailPage /> },
+          { path: routes.deletedAccounts.slice(1), element: <DeletedAccountsPage /> },
+          { path: 'deleted-accounts/follow-ups', element: <DeletedAccountsFollowUpsPage /> },
+          { path: 'deleted-accounts/conversions', element: <DeletedAccountsConversionsPage /> },
+          { path: 'deleted-accounts/performance', element: <DeletedAccountsPerformancePage /> },
+          { path: 'deleted-accounts/:userId', element: <DeletedAccountsLeadDetailPage /> },
         ],
       },
     ],
