@@ -69,6 +69,18 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.salesDeleted.summary).toBe('/api/admin/sales/deleted/summary')
   })
 
+  it('creates vip endpoints', () => {
+    expect(adminEndpoints.vip.leads).toBe('/api/admin/vip/leads')
+    expect(adminEndpoints.vip.detail('user-1')).toBe('/api/admin/vip/leads/user-1')
+    expect(adminEndpoints.vip.updateStatus('user-1')).toBe('/api/admin/vip/leads/user-1/status')
+    expect(adminEndpoints.vip.updateNote('user-1')).toBe('/api/admin/vip/leads/user-1/note')
+    expect(adminEndpoints.vip.updateFollowUp('user-1')).toBe('/api/admin/vip/leads/user-1/follow-up')
+    expect(adminEndpoints.vip.claim('user-1')).toBe('/api/admin/vip/leads/user-1/claim')
+    expect(adminEndpoints.vip.release('user-1')).toBe('/api/admin/vip/leads/user-1/release')
+    expect(adminEndpoints.vip.assign('user-1')).toBe('/api/admin/vip/leads/user-1/assign')
+    expect(adminEndpoints.vip.followUps).toBe('/api/admin/vip/follow-ups')
+  })
+
   it('exposes auth login endpoint', () => {
     expect(adminEndpoints.authLogin).toBe('/api/admin/auth/login')
   })

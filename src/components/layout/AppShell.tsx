@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   BadgeCheck,
   BarChart3,
+  Crown,
   Database,
   Funnel,
   HandCoins,
@@ -21,7 +22,9 @@ import {
   UserX,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/useAuth'
+import { useAdminVipPendingCount } from '@/hooks/api/useAdminVip'
 import { cn } from '@/lib/cn'
+import { formatVipPendingBadge } from '@/pages/vip/vipConstants'
 import { routes } from '@/router/paths'
 
 const links = [
@@ -42,12 +45,33 @@ const links = [
   { to: routes.reviewQueue, label: 'Review Queue', icon: UserCheck },
   { to: routes.reports, label: 'Reports', icon: ClipboardList },
   { to: routes.sales, label: 'Sales', icon: Database },
+  { to: routes.vip, label: 'VIP Customers', icon: Crown, showVipBadge: true },
   { to: routes.deletedAccounts, label: 'Deleted Accounts', icon: UserX },
-]
+] as const
+
+function VipPendingBadge({ count, compact }: { count: number; compact?: boolean }) {
+  const label = formatVipPendingBadge(count)
+  if (!label) return null
+  return (
+    <span
+      className={cn(
+        'absolute flex items-center justify-center rounded-full bg-red-500 font-semibold text-white',
+        compact
+          ? '-right-1.5 -top-1.5 min-h-[1rem] min-w-[1rem] px-1 text-[9px] leading-none'
+          : '-right-2 -top-2 min-h-[1.125rem] min-w-[1.125rem] px-1 text-[10px] leading-none',
+      )}
+      aria-label={`${count} pending VIP leads`}
+    >
+      {label}
+    </span>
+  )
+}
 
 export function AppShell() {
   const navigate = useNavigate()
   const { logout } = useAuth()
+  const pendingQuery = useAdminVipPendingCount()
+  const pendingCount = pendingQuery.isLoading ? 0 : (pendingQuery.data ?? 0)
 
   return (
     <div className="min-h-screen min-w-0 bg-slate-50 md:grid md:grid-cols-[240px_minmax(0,1fr)]">
@@ -66,7 +90,12 @@ export function AppShell() {
                   )
                 }
               >
-                <item.icon size={16} />
+                <span className="relative inline-flex shrink-0">
+                  <item.icon size={16} />
+                  {'showVipBadge' in item && item.showVipBadge ? (
+                    <VipPendingBadge count={pendingCount} />
+                  ) : null}
+                </span>
                 <span>{item.label}</span>
               </NavLink>
             ))}
@@ -93,12 +122,15 @@ export function AppShell() {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600',
+                    'relative rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600',
                     isActive && 'border-slate-900 bg-slate-900 text-white',
                   )
                 }
               >
                 {item.label}
+                {'showVipBadge' in item && item.showVipBadge ? (
+                  <VipPendingBadge count={pendingCount} compact />
+                ) : null}
               </NavLink>
             ))}
           </div>

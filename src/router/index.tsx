@@ -29,6 +29,9 @@ const SalesFollowUpsPage = lazy(() => import('@/pages/sales/SalesFollowUpsPage')
 const SalesConversionsPage = lazy(() => import('@/pages/sales/SalesConversionsPage'))
 const SalesPerformancePage = lazy(() => import('@/pages/sales/SalesPerformancePage'))
 const SalesLeadDetailPage = lazy(() => import('@/pages/sales/SalesLeadDetailPage'))
+const VipCustomersPage = lazy(() => import('@/pages/vip/VipCustomersPage'))
+const VipFollowUpsPage = lazy(() => import('@/pages/vip/VipFollowUpsPage'))
+const VipLeadDetailPage = lazy(() => import('@/pages/vip/VipLeadDetailPage'))
 const DeletedAccountsPage = lazy(() => import('@/pages/deleted-accounts/DeletedAccountsPage'))
 const DeletedAccountsFollowUpsPage = lazy(() => import('@/pages/deleted-accounts/DeletedAccountsFollowUpsPage'))
 const DeletedAccountsConversionsPage = lazy(
@@ -102,6 +105,9 @@ export const router = createBrowserRouter([
           { path: 'sales/conversions', element: <SalesConversionsPage /> },
           { path: 'sales/performance', element: <SalesPerformancePage /> },
           { path: 'sales/:userId', element: <SalesLeadDetailPage /> },
+          { path: routes.vip.slice(1), element: <VipCustomersPage /> },
+          { path: 'vip/follow-ups', element: <VipFollowUpsPage /> },
+          { path: 'vip/:userId', element: <VipLeadDetailPage /> },
           { path: routes.deletedAccounts.slice(1), element: <DeletedAccountsPage /> },
           { path: 'deleted-accounts/follow-ups', element: <DeletedAccountsFollowUpsPage /> },
           { path: 'deleted-accounts/conversions', element: <DeletedAccountsConversionsPage /> },

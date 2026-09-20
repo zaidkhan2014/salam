@@ -798,6 +798,93 @@ export interface SalesLeadsFilters {
 /** Same as SalesLeadsFilters but no accountStatus (archives only). start/end = deletionAt. */
 export type DeletedSalesLeadsFilters = Omit<SalesLeadsFilters, 'accountStatus'>
 
+export interface AdminVipLeadSummary {
+  userId: string
+  memberId: string | null
+  phone: string | null
+  fullName: string | null
+  gender: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  profileCreatedAt: IsoInstant | null
+  profileStatus: string | null
+  accountStatus: string | null
+  subscribed: boolean
+  status: string
+  note: string | null
+  followUpAt: IsoInstant | null
+  lastCalledAt: IsoInstant | null
+  assignedToAdminId: string | null
+  claimedAt: IsoInstant | null
+  outcomeReason: AdminSalesOutcomeReason | null
+  convertedAt: IsoInstant | null
+  requestedAt: IsoInstant | null
+  lastRequestedAt: IsoInstant | null
+  requestCount: number
+  vipPlanId: string | null
+  vipTitle: string | null
+  originalPriceInr: number | null
+  discountedPriceInr: number | null
+  currency: string | null
+  updatedAt: IsoInstant | null
+}
+
+export interface AdminVipLeadSearchResponse {
+  items: AdminVipLeadSummary[]
+  page: number
+  size: number
+  total: number
+}
+
+export interface AdminVipLeadDetailResponse {
+  profile: UserProfile
+  status: string
+  note: string | null
+  notes: AdminSalesNoteEntry[]
+  followUpAt: IsoInstant | null
+  lastCalledAt: IsoInstant | null
+  assignedToAdminId: string | null
+  claimedAt: IsoInstant | null
+  outcomeReason: AdminSalesOutcomeReason | null
+  convertedAt: IsoInstant | null
+  requestedAt: IsoInstant | null
+  lastRequestedAt: IsoInstant | null
+  requestCount: number
+  vipPlanId: string | null
+  vipTitle: string | null
+  originalPriceInr: number | null
+  discountedPriceInr: number | null
+  currency: string | null
+  ctaLabel: string | null
+  createdAt: IsoInstant | null
+  updatedAt: IsoInstant | null
+}
+
+export type VipLeadSort = 'newest' | 'oldest' | 'follow_up' | 'updated'
+
+export interface VipLeadsFilters {
+  start?: IsoInstant
+  end?: IsoInstant
+  status?: AdminSalesStatus
+  followUpStart?: IsoInstant
+  followUpEnd?: IsoInstant
+  query?: string
+  assignedToAdminId?: string
+  assignedToMe?: boolean
+  pool?: boolean
+  sort?: VipLeadSort
+  page?: number
+  size?: number
+}
+
+export interface VipFollowUpsFilters {
+  bucket?: 'due_today' | 'overdue' | 'upcoming'
+  assignedToMe?: boolean
+  page?: number
+  size?: number
+}
+
 export interface SalesFollowUpsFilters {
   bucket?: 'due_today' | 'overdue' | 'upcoming'
   assignedToMe?: boolean

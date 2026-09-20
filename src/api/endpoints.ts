@@ -70,4 +70,15 @@ export const adminEndpoints = {
     savedView: (viewId: string) => `${ADMIN_API_BASE}/sales/deleted/saved-views/${viewId}`,
     summary: `${ADMIN_API_BASE}/sales/deleted/summary`,
   },
+  vip: {
+    leads: `${ADMIN_API_BASE}/vip/leads`,
+    detail: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}`,
+    updateStatus: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/status`,
+    updateNote: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/note`,
+    updateFollowUp: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/follow-up`,
+    claim: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/claim`,
+    release: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/release`,
+    assign: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/assign`,
+    followUps: `${ADMIN_API_BASE}/vip/follow-ups`,
+  },
 } as const
