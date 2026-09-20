@@ -6,6 +6,9 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.analytics.overview).toBe('/api/admin/analytics/overview')
     expect(adminEndpoints.analytics.genderMonitoring).toBe('/api/admin/analytics/gender-monitoring')
     expect(adminEndpoints.analytics.geoByGender).toBe('/api/admin/analytics/geo-by-gender')
+    expect(adminEndpoints.analytics.onboardingDropoffWithMedia).toBe(
+      '/api/admin/analytics/onboarding-dropoff-with-media',
+    )
     expect(adminEndpoints.analytics.retention).toBe('/api/admin/analytics/retention')
     expect(adminEndpoints.analytics.lifeTogether).toBe('/api/admin/analytics/life-together')
     expect(adminEndpoints.analytics.selfie).toBe('/api/admin/analytics/selfie')

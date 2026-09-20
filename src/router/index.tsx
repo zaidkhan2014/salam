@@ -13,6 +13,7 @@ const MatchingPage = lazy(() => import('@/pages/matching/MatchingPage'))
 const ChatPage = lazy(() => import('@/pages/chat/ChatPage'))
 const SafetyPage = lazy(() => import('@/pages/safety/SafetyPage'))
 const DemographicsPage = lazy(() => import('@/pages/demographics/DemographicsPage'))
+const OnboardingDropoffPage = lazy(() => import('@/pages/onboarding-dropoff/OnboardingDropoffPage'))
 const RetentionPage = lazy(() => import('@/pages/retention/RetentionPage'))
 const LifeTogetherPage = lazy(() => import('@/pages/life-together/LifeTogetherPage'))
 const SelfiePage = lazy(() => import('@/pages/selfie/SelfiePage'))
@@ -89,6 +90,7 @@ export const router = createBrowserRouter([
           { path: routes.chat.slice(1), element: <ChatPage /> },
           { path: routes.safety.slice(1), element: <SafetyPage /> },
           { path: routes.demographics.slice(1), element: <DemographicsPage /> },
+          { path: routes.onboardingDropoff.slice(1), element: <OnboardingDropoffPage /> },
           { path: routes.retention.slice(1), element: <RetentionPage /> },
           { path: routes.lifeTogether.slice(1), element: <LifeTogetherPage /> },
           { path: routes.selfie.slice(1), element: <SelfiePage /> },

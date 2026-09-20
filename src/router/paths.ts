@@ -7,6 +7,7 @@ export const routes = {
   chat: '/chat',
   safety: '/safety',
   demographics: '/demographics',
+  onboardingDropoff: '/onboarding-dropoff',
   retention: '/retention',
   lifeTogether: '/life-together',
   selfie: '/selfie',

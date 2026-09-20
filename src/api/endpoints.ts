@@ -13,6 +13,7 @@ export const adminEndpoints = {
     demographics: `${ADMIN_API_BASE}/analytics/demographics`,
     genderMonitoring: `${ADMIN_API_BASE}/analytics/gender-monitoring`,
     geoByGender: `${ADMIN_API_BASE}/analytics/geo-by-gender`,
+    onboardingDropoffWithMedia: `${ADMIN_API_BASE}/analytics/onboarding-dropoff-with-media`,
     retention: `${ADMIN_API_BASE}/analytics/retention`,
     lifeTogether: `${ADMIN_API_BASE}/analytics/life-together`,
     selfie: `${ADMIN_API_BASE}/analytics/selfie`,

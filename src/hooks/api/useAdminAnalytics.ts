@@ -6,8 +6,10 @@ import type {
   AdminGenderMonitoringResponse,
   AdminGeoByGenderResponse,
   AdminMetricsResponse,
+  AdminOnboardingDropoffWithMediaResponse,
   AnalyticsFilters,
   GenderMonitoringFilters,
+  OnboardingDropoffFilters,
   RetentionFilters,
 } from '@/api/types'
 
@@ -121,6 +123,22 @@ export function useGeoByGenderMetrics(limit = 20) {
       })
       return response.data
     },
+  })
+}
+
+/** Gated: only fetches when filters.day is set (admin clicked Check). */
+export function useAdminOnboardingDropoff(filters: OnboardingDropoffFilters | null) {
+  return useQuery({
+    queryKey: ['admin-onboarding-dropoff', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminOnboardingDropoffWithMediaResponse>(
+        adminEndpoints.analytics.onboardingDropoffWithMedia,
+        { params: cleanQueryParams(filters ?? {}) },
+      )
+      return response.data
+    },
+    enabled: Boolean(filters?.day),
+    staleTime: 30_000,
   })
 }
 

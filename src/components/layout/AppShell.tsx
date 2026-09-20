@@ -19,6 +19,7 @@ import {
   ThumbsUp,
   ClipboardList,
   UserCheck,
+  UserMinus,
   UserX,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/useAuth'
@@ -35,6 +36,7 @@ const links = [
   { to: routes.chat, label: 'Chat', icon: MessageSquare },
   { to: routes.safety, label: 'Safety', icon: ShieldAlert },
   { to: routes.demographics, label: 'Demographics', icon: PieChart },
+  { to: routes.onboardingDropoff, label: 'Onboarding Dropoff', icon: UserMinus },
   { to: routes.retention, label: 'Retention', icon: Repeat },
   { to: routes.lifeTogether, label: 'Life Together', icon: HandCoins },
   { to: routes.selfie, label: 'Selfie', icon: BadgeCheck },

@@ -1,0 +1,170 @@
+# Onboarding dropoff with media (by gender) — client guide
+
+Admin analytics API for profiles that **started registering on a given UTC day**, uploaded **at least one photo**, but **never finished onboarding** (`onboardingComplete=false`). Gender is resolved via cached Rekognition detection (or claimed gender when present), then returned as counts plus a paginated user table.
+
+**Related:** [`FRONTEND_ADMIN_API_CONTRACT.md`](./FRONTEND_ADMIN_API_CONTRACT.md) — auth, base URL, CORS.
+
+---
+
+## Summary
+
+| Item | Detail |
+|------|--------|
+| Endpoint | `GET /api/admin/analytics/onboarding-dropoff-with-media` |
+| Auth | Admin Bearer JWT (`ROLE_ADMIN`) |
+| Purpose | Male / female / unknown counts + user rows for incomplete onboarding with media |
+| Day | Required `yyyy-MM-dd` — filters profile **`createdAt`** in that **UTC** calendar day |
+| Gender source | Prefer `media.genderDetected` cache → else claimed `basicDetails.gender` → else Rekognition (persisted for next Check) |
+| Deleted accounts | Excluded (`accountStatus != DELETED`) |
+
+---
+
+## Cohort
+
+A profile is included when **all** of:
+
+1. `onboardingComplete == false`
+2. At least one media item (`mediaGallery.items.0` exists)
+3. `accountStatus != DELETED`
+4. `createdAt` in `[day 00:00:00Z, next day 00:00:00Z)`
+
+---
+
+## Endpoint
+
+```http
+GET /api/admin/analytics/onboarding-dropoff-with-media?day=2026-09-18
+Authorization: Bearer <accessToken>
+```
+
+### Query parameters
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `day` | `yyyy-MM-dd` | **Yes** | — | UTC calendar day. Invalid format → **400** |
+| `gender` | string | No | `ALL` | Filters **items** only: `Male` \| `Female` \| `Unknown` \| `ALL`. Counts always include all genders |
+| `page` | int | No | `0` | 0-based page for `items` |
+| `size` | int | No | `20` | Page size (max `100`) |
+
+### Example requests
+
+```http
+GET /api/admin/analytics/onboarding-dropoff-with-media?day=2026-09-18
+GET /api/admin/analytics/onboarding-dropoff-with-media?day=2026-09-18&gender=Female&page=0&size=20
+GET /api/admin/analytics/onboarding-dropoff-with-media?day=2026-09-18&gender=Male&page=1&size=20
+```
+
+---
+
+## Response
+
+```json
+{
+  "day": "2026-09-18",
+  "dayStart": "2026-09-18T00:00:00Z",
+  "dayEnd": "2026-09-19T00:00:00Z",
+  "maleCount": 20,
+  "femaleCount": 18,
+  "unknownCount": 3,
+  "totalCount": 41,
+  "genderFilter": "ALL",
+  "items": [
+    {
+      "userId": "user-123",
+      "memberId": null,
+      "phone": "+9198xxxxxxx",
+      "createdAt": "2026-09-18T14:22:01.000Z",
+      "mediaCount": 1,
+      "gender": "Female",
+      "genderSource": "REKOGNITION",
+      "genderCheckConfidence": 91.2,
+      "primaryPublicId": "qalbi/abc"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "total": 41
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `maleCount` / `femaleCount` / `unknownCount` | Full-day cohort counts (ignore `gender` filter) |
+| `totalCount` | Sum of the three count fields |
+| `genderFilter` | Echo of applied item filter |
+| `items` | Paginated rows after gender filter |
+| `total` | Number of rows matching `genderFilter` (for pagination) |
+
+### Row fields
+
+| Field | Notes |
+|-------|--------|
+| `gender` | `Male` \| `Female` \| `Unknown` |
+| `genderSource` | `CACHED` (stored on media) \| `CLAIMED` (basicDetails) \| `REKOGNITION` (just detected) \| `UNKNOWN` |
+| `genderCheckConfidence` | Rekognition confidence when available; may be null for claimed/unknown |
+| `primaryPublicId` | Primary (`orderIndex=0`) image, else first image |
+
+---
+
+## Gender resolution
+
+1. **Cached** — media already has `genderDetected` from a prior Check or review flow  
+2. **Claimed** — `basicDetails.gender` set (rare mid-onboarding) — no AWS call  
+3. **Rekognition** — detect from photo; persist `genderDetected` + confidence on that media item **without** changing moderation / review status  
+4. **Unknown** — no face, low confidence, download/API failure  
+
+**Latency:** First Check for a busy day may take several seconds (one Rekognition call per unresolved photo). Repeat Checks for the same day are mostly Mongo-only and fast.
+
+---
+
+## Suggested UI
+
+1. Date picker → **Check** → `GET ...?day=YYYY-MM-DD`
+2. Show cards from `maleCount` / `femaleCount` / `unknownCount`
+3. Tabs: Female / Male / Unknown → `GET ...?day=...&gender=Female&page=0`
+4. Table uses `items`; next page increments `page`
+
+---
+
+## TypeScript types
+
+```ts
+export type DropoffGender = "Male" | "Female" | "Unknown";
+export type DropoffGenderSource = "CACHED" | "CLAIMED" | "REKOGNITION" | "UNKNOWN";
+
+export interface AdminOnboardingDropoffUserRow {
+  userId: string;
+  memberId: string | null;
+  phone: string | null;
+  createdAt: string | null;
+  mediaCount: number;
+  gender: DropoffGender;
+  genderSource: DropoffGenderSource;
+  genderCheckConfidence: number | null;
+  primaryPublicId: string | null;
+}
+
+export interface AdminOnboardingDropoffWithMediaResponse {
+  day: string;
+  dayStart: string;
+  dayEnd: string;
+  maleCount: number;
+  femaleCount: number;
+  unknownCount: number;
+  totalCount: number;
+  genderFilter: "ALL" | DropoffGender;
+  items: AdminOnboardingDropoffUserRow[];
+  page: number;
+  size: number;
+  total: number;
+}
+```
+
+---
+
+## Errors
+
+| Status | When |
+|--------|------|
+| **400** | Missing/invalid `day`, or invalid `gender` |
+| **401** | Missing/invalid admin token |
