@@ -133,7 +133,11 @@ export function useAdminOnboardingDropoff(filters: OnboardingDropoffFilters | nu
     queryFn: async () => {
       const response = await adminClient.get<AdminOnboardingDropoffWithMediaResponse>(
         adminEndpoints.analytics.onboardingDropoffWithMedia,
-        { params: cleanQueryParams(filters ?? {}) },
+        {
+          params: cleanQueryParams(filters ?? {}),
+          // Rekognition-backed day Check can take several minutes on busy days.
+          timeout: 10 * 60 * 1000,
+        },
       )
       return response.data
     },
