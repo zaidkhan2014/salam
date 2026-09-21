@@ -24,6 +24,23 @@ export const ADMIN_SALES_OUTCOME_REASONS: AdminSalesOutcomeReason[] = [
   'OTHER',
 ]
 
+/** Exact match values for basicDetails.maritalStatus (case-sensitive). */
+export const SALES_MARITAL_STATUS_OPTIONS = [
+  'Never Married',
+  'Divorced',
+  'Widowed',
+  'Separated',
+] as const
+
+export type SalesMaritalStatusOption = (typeof SALES_MARITAL_STATUS_OPTIONS)[number]
+
+const SALES_MARITAL_STATUS_SET = new Set<string>(SALES_MARITAL_STATUS_OPTIONS)
+
+export function parseSalesMaritalStatus(raw: string | null | undefined): string {
+  if (!raw) return ''
+  return SALES_MARITAL_STATUS_SET.has(raw) ? raw : ''
+}
+
 export const SALES_SUMMARY_METRIC_LABELS: Record<string, string> = {
   sales_total_leads: 'Total leads',
   sales_call_remaining: 'Call remaining',

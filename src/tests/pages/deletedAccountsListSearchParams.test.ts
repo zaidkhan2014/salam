@@ -77,6 +77,21 @@ describe('deletedAccountsListSearchParams', () => {
     expect(api.city).toBe('New Delhi')
   })
 
+  it('round-trips country + countryIso and maps country to API', () => {
+    const state = {
+      ...defaultDeletedAccountsListUrlState(),
+      country: 'India',
+      countryIso: 'IN',
+      state: 'Uttar Pradesh',
+      city: 'Lucknow',
+      maritalStatus: 'Widowed',
+    }
+    expect(roundTrip(state)).toEqual(state)
+    const api = deletedAccountsListStateToApiFilters(state, 20)
+    expect(api.country).toBe('India')
+    expect(api).not.toHaveProperty('countryIso')
+  })
+
   it('deletionRangePreset returns datetime-local start/end', () => {
     const range = deletionRangePreset(7)
     expect(range.start).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)

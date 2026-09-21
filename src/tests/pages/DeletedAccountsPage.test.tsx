@@ -29,6 +29,11 @@ vi.mock('@/hooks/api/useAdminDeletedSales', () => ({
   useDeleteDeletedSalesSavedView: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 
+vi.mock('@/hooks/api/useGeo', () => ({
+  useGeoStates: () => ({ data: [], isFetching: false }),
+  useGeoCities: () => ({ data: [], isFetching: false }),
+}))
+
 vi.mock('@/features/auth/useAuth', () => ({
   useAuth: () => ({ session: null }),
 }))

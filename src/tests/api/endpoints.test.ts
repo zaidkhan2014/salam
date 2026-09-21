@@ -17,6 +17,12 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.analytics.likes).toBe('/api/admin/analytics/likes')
   })
 
+  it('exposes geo endpoints', () => {
+    expect(adminEndpoints.geo.countries).toBe('/api/geo/countries')
+    expect(adminEndpoints.geo.states).toBe('/api/geo/states')
+    expect(adminEndpoints.geo.cities).toBe('/api/geo/cities')
+  })
+
   it('creates user endpoints', () => {
     expect(adminEndpoints.users.detail('user-1')).toBe('/api/admin/users/user-1')
     expect(adminEndpoints.users.newlyJoined).toBe('/api/admin/users/newly-joined')

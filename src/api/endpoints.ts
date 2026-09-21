@@ -1,4 +1,5 @@
 export const ADMIN_API_BASE = '/api/admin'
+export const GEO_API_BASE = '/api/geo'
 
 export const adminEndpoints = {
   authToken: `${ADMIN_API_BASE}/auth/token`,
@@ -20,6 +21,11 @@ export const adminEndpoints = {
     searchIndex: `${ADMIN_API_BASE}/analytics/search-index`,
     otp: `${ADMIN_API_BASE}/analytics/otp`,
     likes: `${ADMIN_API_BASE}/analytics/likes`,
+  },
+  geo: {
+    countries: `${GEO_API_BASE}/countries`,
+    states: `${GEO_API_BASE}/states`,
+    cities: `${GEO_API_BASE}/cities`,
   },
   users: {
     search: `${ADMIN_API_BASE}/users/search`,

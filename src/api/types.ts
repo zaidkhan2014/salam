@@ -27,6 +27,23 @@ export interface AdminTokenResponse {
 export type Granularity = 'DAILY' | 'WEEKLY' | 'MONTHLY'
 export type GranularityInput = 'daily' | 'weekly' | 'monthly'
 
+export interface GeoCountry {
+  iso2: string
+  name: string
+}
+
+export interface GeoState {
+  code: string
+  name: string
+  countryIso: string
+}
+
+export interface GeoCity {
+  geonameId: string
+  name: string
+  stateCode: string
+}
+
 export interface AdminMetricPoint {
   bucket: string
   value: number
@@ -818,6 +835,8 @@ export interface SalesLeadsFilters {
   birthYear?: number
   /** Exact match on basicDetails.maritalStatus (trimmed, case-sensitive) */
   maritalStatus?: string
+  /** Exact match on basicDetails.country (display name, e.g. India) */
+  country?: string
   state?: string
   city?: string
   /** Hardcoded band id e.g. INC_IN_30_40 — see salesIncomeBands.ts */
