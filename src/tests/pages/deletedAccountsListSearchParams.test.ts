@@ -46,6 +46,37 @@ describe('deletedAccountsListSearchParams', () => {
     expect(api.status).toBe('CALL_REMAINING')
   })
 
+  it('preserves multi-word and trailing-space state/city while typing', () => {
+    const midType = {
+      ...defaultDeletedAccountsListUrlState(),
+      state: 'Uttar ',
+      city: 'New ',
+    }
+    expect(toDeletedAccountsListSearchParams(midType).get('state')).toBe('Uttar ')
+    expect(toDeletedAccountsListSearchParams(midType).get('city')).toBe('New ')
+    expect(roundTrip(midType)).toEqual(midType)
+
+    const complete = {
+      ...defaultDeletedAccountsListUrlState(),
+      state: 'Uttar Pradesh',
+      city: 'New Delhi',
+    }
+    expect(roundTrip(complete)).toEqual(complete)
+  })
+
+  it('trims state/city when mapping to API filters', () => {
+    const api = deletedAccountsListStateToApiFilters(
+      {
+        ...defaultDeletedAccountsListUrlState(),
+        state: 'Uttar Pradesh ',
+        city: ' New Delhi',
+      },
+      20,
+    )
+    expect(api.state).toBe('Uttar Pradesh')
+    expect(api.city).toBe('New Delhi')
+  })
+
   it('deletionRangePreset returns datetime-local start/end', () => {
     const range = deletionRangePreset(7)
     expect(range.start).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)

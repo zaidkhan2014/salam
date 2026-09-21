@@ -91,7 +91,7 @@ export function toVipListSearchParams(state: VipListUrlState): URLSearchParams {
   if (state.query) p.set('query', state.query)
   if (state.pool === 'true') p.set('pool', 'true')
   if (state.assignedToMe === 'true') p.set('assignedToMe', 'true')
-  if (state.assignedToAdminId.trim()) p.set('assignedToAdminId', state.assignedToAdminId.trim())
+  if (state.assignedToAdminId.trim()) p.set('assignedToAdminId', state.assignedToAdminId)
   if (state.sort) p.set('sort', state.sort)
   if (state.page > 0) p.set('page', String(state.page))
 

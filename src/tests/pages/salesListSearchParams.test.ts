@@ -80,6 +80,37 @@ describe('salesListSearchParams', () => {
     expect(roundTrip(state)).toEqual(state)
   })
 
+  it('preserves multi-word and trailing-space state/city while typing', () => {
+    const midType = {
+      ...defaultSalesListUrlState(),
+      state: 'Uttar ',
+      city: 'New ',
+    }
+    expect(toSalesListSearchParams(midType).get('state')).toBe('Uttar ')
+    expect(toSalesListSearchParams(midType).get('city')).toBe('New ')
+    expect(roundTrip(midType)).toEqual(midType)
+
+    const complete = {
+      ...defaultSalesListUrlState(),
+      state: 'Uttar Pradesh',
+      city: 'New Delhi',
+    }
+    expect(roundTrip(complete)).toEqual(complete)
+  })
+
+  it('trims state/city when mapping to API filters', () => {
+    const api = salesListStateToApiFilters(
+      {
+        ...defaultSalesListUrlState(),
+        state: 'Uttar Pradesh ',
+        city: ' New Delhi',
+      },
+      20,
+    )
+    expect(api.state).toBe('Uttar Pradesh')
+    expect(api.city).toBe('New Delhi')
+  })
+
   it('preserves out-of-range birthYear string from URL', () => {
     const parsed = parseSalesListSearchParams(new URLSearchParams('birthYear=1899'))
     expect(parsed.birthYear).toBe('1899')
