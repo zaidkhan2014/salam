@@ -24,7 +24,7 @@ import {
   type VipListUrlState,
 } from '@/pages/vip/vipListSearchParams'
 import { routes } from '@/router/paths'
-import { formatDateTime, formatNumber } from '@/utils/format'
+import { formatDate, formatDateTime, formatNumber } from '@/utils/format'
 
 const PAGE_SIZE = 20
 
@@ -270,6 +270,18 @@ export default function VipCustomersPage() {
                 <tr>
                   <th className="px-3 py-2">Lead</th>
                   <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">State</th>
+                  <th className="px-3 py-2">City</th>
+                  <th className="px-3 py-2">Profession</th>
+                  <th className="px-3 py-2">Education</th>
+                  <th className="px-3 py-2">Industry</th>
+                  <th className="px-3 py-2">Income</th>
+                  <th className="px-3 py-2">Age</th>
+                  <th className="px-3 py-2">DOB</th>
+                  <th className="px-3 py-2">Marital</th>
+                  <th className="px-3 py-2">Height</th>
+                  <th className="px-3 py-2">Verified</th>
+                  <th className="px-3 py-2">Photos</th>
                   <th className="px-3 py-2">VIP plan</th>
                   <th className="px-3 py-2">Requests</th>
                   <th className="px-3 py-2">Price</th>
@@ -286,6 +298,20 @@ export default function VipCustomersPage() {
                       <UserLink userId={lead.userId} label={lead.fullName ?? lead.userId} />
                     </td>
                     <td className="px-3 py-2">{lead.status}</td>
+                    <td className="px-3 py-2">{lead.state ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.city ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.profession ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.education ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.industry ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.incomeLabel ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.age ?? '--'}</td>
+                    <td className="px-3 py-2">{formatDate(lead.dateOfBirth)}</td>
+                    <td className="px-3 py-2">{lead.maritalStatus ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.height != null ? `${lead.height} cm` : '--'}</td>
+                    <td className="px-3 py-2">
+                      {lead.verifiedProfile == null ? '--' : lead.verifiedProfile ? 'Yes' : 'No'}
+                    </td>
+                    <td className="px-3 py-2">{lead.approvedPhotoCount ?? '--'}</td>
                     <td className="px-3 py-2">{lead.vipTitle ?? '--'}</td>
                     <td className="px-3 py-2">{lead.requestCount ?? '--'}</td>
                     <td className="px-3 py-2">

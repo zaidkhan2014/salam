@@ -885,6 +885,17 @@ export interface AdminVipLeadSummary {
   discountedPriceInr: number | null
   currency: string | null
   updatedAt: IsoInstant | null
+  dateOfBirth?: string | null
+  age?: number | null
+  maritalStatus?: string | null
+  height?: number | null
+  profession?: string | null
+  education?: string | null
+  industry?: string | null
+  incomeLabel?: string | null
+  incomePerYearUsd?: number | null
+  verifiedProfile?: boolean
+  approvedPhotoCount?: number | null
 }
 
 export interface AdminVipLeadSearchResponse {
