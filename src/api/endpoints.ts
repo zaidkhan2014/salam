@@ -17,9 +17,11 @@ export const adminEndpoints = {
     onboardingDropoffWithMedia: `${ADMIN_API_BASE}/analytics/onboarding-dropoff-with-media`,
     retention: `${ADMIN_API_BASE}/analytics/retention`,
     lifeTogether: `${ADMIN_API_BASE}/analytics/life-together`,
+    lifeTogetherOnboarding: `${ADMIN_API_BASE}/analytics/life-together-onboarding`,
     selfie: `${ADMIN_API_BASE}/analytics/selfie`,
     searchIndex: `${ADMIN_API_BASE}/analytics/search-index`,
     otp: `${ADMIN_API_BASE}/analytics/otp`,
+    loginFunnel: `${ADMIN_API_BASE}/analytics/login-funnel`,
     likes: `${ADMIN_API_BASE}/analytics/likes`,
   },
   geo: {

@@ -13,6 +13,7 @@ export const routes = {
   selfie: '/selfie',
   searchIndex: '/search-index',
   otp: '/otp',
+  loginFunnel: '/login-funnel',
   likes: '/likes',
   users: '/users',
   userDetail: (userId: string) => `/users/${userId}`,

@@ -5,6 +5,8 @@ import { cleanQueryParams } from '@/api/params'
 import type {
   AdminGenderMonitoringResponse,
   AdminGeoByGenderResponse,
+  AdminLifeTogetherOnboardingResponse,
+  AdminLoginFunnelResponse,
   AdminMetricsResponse,
   AdminOnboardingDropoffWithMediaResponse,
   AnalyticsFilters,
@@ -163,6 +165,33 @@ export function useLifeTogetherMetrics(filters: AnalyticsFilters) {
     queryKey: ['analytics', 'life-together', filters],
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.lifeTogether, {
+        params: cleanQueryParams(filters),
+      })
+      return response.data
+    },
+  })
+}
+
+export function useLifeTogetherOnboardingMetrics(filters: Pick<AnalyticsFilters, 'start' | 'end'>) {
+  return useQuery({
+    queryKey: ['analytics', 'life-together-onboarding', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminLifeTogetherOnboardingResponse>(
+        adminEndpoints.analytics.lifeTogetherOnboarding,
+        {
+          params: cleanQueryParams(filters),
+        },
+      )
+      return response.data
+    },
+  })
+}
+
+export function useLoginFunnelMetrics(filters: Pick<AnalyticsFilters, 'start' | 'end'>) {
+  return useQuery({
+    queryKey: ['analytics', 'login-funnel', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminLoginFunnelResponse>(adminEndpoints.analytics.loginFunnel, {
         params: cleanQueryParams(filters),
       })
       return response.data

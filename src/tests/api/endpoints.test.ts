@@ -11,9 +11,13 @@ describe('adminEndpoints', () => {
     )
     expect(adminEndpoints.analytics.retention).toBe('/api/admin/analytics/retention')
     expect(adminEndpoints.analytics.lifeTogether).toBe('/api/admin/analytics/life-together')
+    expect(adminEndpoints.analytics.lifeTogetherOnboarding).toBe(
+      '/api/admin/analytics/life-together-onboarding',
+    )
     expect(adminEndpoints.analytics.selfie).toBe('/api/admin/analytics/selfie')
     expect(adminEndpoints.analytics.searchIndex).toBe('/api/admin/analytics/search-index')
     expect(adminEndpoints.analytics.otp).toBe('/api/admin/analytics/otp')
+    expect(adminEndpoints.analytics.loginFunnel).toBe('/api/admin/analytics/login-funnel')
     expect(adminEndpoints.analytics.likes).toBe('/api/admin/analytics/likes')
   })
 

@@ -78,6 +78,22 @@ export interface GenderSnapshot {
   maleToFemaleRatio: string
 }
 
+export interface AdminLoginFunnelResponse {
+  start: IsoInstant
+  end: IsoInstant
+  otpRequested: number
+  otpVerified: number
+  existingUserLogin: GenderSnapshot
+}
+
+export interface AdminLifeTogetherOnboardingResponse {
+  start: IsoInstant
+  end: IsoInstant
+  onboardingComplete: GenderSnapshot
+  lifeTogetherFilled: GenderSnapshot
+  lifeTogetherSkipped: GenderSnapshot
+}
+
 export interface GenderTrendPoint {
   bucket: string
   male: number
