@@ -16,6 +16,7 @@ import { SalesSavedViews } from '@/pages/sales/SalesSavedViews'
 import { SalesSubNav } from '@/pages/sales/SalesSubNav'
 import {
   ADMIN_SALES_STATUS_FILTER_OPTIONS,
+  BIO_FILTER_OPTIONS,
   PROFILE_CREATED_FOR_FILTER_OPTIONS,
   SALES_MARITAL_STATUS_OPTIONS,
   birthYearForLeadsApi,
@@ -282,6 +283,22 @@ export default function SalesPage() {
                 >
                   <option value="">Any</option>
                   {PROFILE_CREATED_FOR_FILTER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">Bio</span>
+                <Select
+                  id="sales-filter-bio"
+                  value={parsed.bio}
+                  onChange={(event) => setFilters({ bio: event.target.value, page: 0 })}
+                  aria-label="Filter by bio availability"
+                >
+                  <option value="">Any</option>
+                  {BIO_FILTER_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>

@@ -1,0 +1,197 @@
+# OTP Unverified Call List — client integration guide
+
+Admin API for users who **requested OTP** in a date window but **did not successfully verify after that request**. Use this list to call numbers and ask what blocked verification (SMS delay, wrong OTP, app crash, etc.).
+
+**Related:**
+- [`FRONTEND_ADMIN_API_CONTRACT.md`](./FRONTEND_ADMIN_API_CONTRACT.md) — auth, base URL
+- [`LOGIN_FUNNEL_CLIENT.md`](./LOGIN_FUNNEL_CLIENT.md) — OTP requested / verified totals
+- `/analytics/otp` — request / success / fail counts with daily series
+
+---
+
+## Summary
+
+| Item | Detail |
+|------|--------|
+| Endpoint | `GET /api/admin/analytics/otp-unverified` |
+| Auth | Admin Bearer JWT (`ROLE_ADMIN`) |
+| Purpose | Paginated call list of OTP dropoffs |
+| Collection | `auth_info` |
+| Window | `[start, end)` on `lastOtpRequestedAt` |
+| Default range | Last **7 days** ending at `now` |
+| Sort | `lastOtpRequestedAt` descending |
+
+---
+
+## Cohort
+
+A row is included when **all** of:
+
+1. `lastOtpRequestedAt` in `[start, end)`
+2. Latest request not verified: `otpVerifiedAt` is **null**, **or** `otpVerifiedAt < lastOtpRequestedAt`
+3. `accountStatus != DELETED`
+
+Includes:
+
+- First-time users who never verified
+- Returning users who requested OTP again and did not finish verify after that request
+
+---
+
+## Why this is not `otp_requested − otp_success`
+
+`/analytics/otp` counts:
+
+| Metric | Field in range |
+|--------|----------------|
+| `otp_requested` | `lastOtpRequestedAt` |
+| `otp_success` | `otpVerifiedAt` |
+
+Those are **different timestamps**, not a nested funnel. A user can request in the window and verify outside it (or the reverse). This endpoint answers: “who requested in this window and still hasn’t verified **that** request?”
+
+---
+
+## Endpoint
+
+```
+GET /api/admin/analytics/otp-unverified
+```
+
+### Query parameters
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `start` | Instant (ISO-8601) | No | `end − 7 days` | Inclusive lower bound on `lastOtpRequestedAt` |
+| `end` | Instant (ISO-8601) | No | `now` | Exclusive upper bound |
+| `page` | int | No | `0` | Zero-based page |
+| `size` | int | No | `20` | Page size, **max 100** |
+
+`400` when resolved `start` is not strictly before `end`.
+
+### Example requests
+
+```http
+GET /api/admin/analytics/otp-unverified
+GET /api/admin/analytics/otp-unverified?start=2026-09-20T00:00:00Z&end=2026-09-26T00:00:00Z&page=0&size=50
+```
+
+---
+
+## Response — `AdminOtpUnverifiedResponse`
+
+```json
+{
+  "start": "2026-09-19T14:00:00Z",
+  "end": "2026-09-26T14:00:00Z",
+  "total": 87,
+  "page": 0,
+  "size": 20,
+  "items": [
+    {
+      "userId": "66f0a9...",
+      "phone": "+9198xxxxxxx",
+      "lastOtpRequestedAt": "2026-09-25T18:22:00Z",
+      "otpVerifiedAt": null,
+      "lastOtpFailedAt": "2026-09-25T18:23:10Z",
+      "otpAttempts": 2,
+      "lastOtpChannel": "SMS",
+      "profileRegistered": false,
+      "blocked": false,
+      "blockedUntil": null,
+      "accountStatus": "ACTIVE"
+    }
+  ]
+}
+```
+
+### Top-level fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `start` / `end` | Instant | Resolved window |
+| `total` | number | Matching documents (all pages) |
+| `page` / `size` | number | Resolved pagination |
+| `items` | `AdminOtpUnverifiedItem[]` | Current page |
+
+### Item fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `userId` | string | `auth_info` id |
+| `phone` | string \| null | Call this number |
+| `lastOtpRequestedAt` | Instant \| null | When they last hit request OTP |
+| `otpVerifiedAt` | Instant \| null | Last successful verify (null or older than request) |
+| `lastOtpFailedAt` | Instant \| null | Last failed verify attempt |
+| `otpAttempts` | number | Failed attempts counter (reset on success) |
+| `lastOtpChannel` | string \| null | e.g. `SMS` / `WHATSAPP` |
+| `profileRegistered` | boolean | Already completed registration before |
+| `blocked` | boolean | Temporarily blocked after too many failed OTPs |
+| `blockedUntil` | Instant \| null | Block expiry |
+| `accountStatus` | string \| null | Usually `ACTIVE` |
+
+---
+
+## Suggested UI
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ Date range  [Last 7 days ▾]     Total unverified: 87       │
+├────────────────────────────────────────────────────────────┤
+│ Phone | Requested at | Failed at | Attempts | Registered │
+│ +91…  | 25 Sep 18:22 | 18:23     | 2        | No         │
+│ [Call]                                                 │
+└────────────────────────────────────────────────────────────┘
+```
+
+1. Load with default 7-day window.
+2. Show `phone` as primary action (Click-to-call / copy).
+3. Use `lastOtpFailedAt` + `otpAttempts` to prioritize “tried and failed” vs “never entered OTP”.
+4. If `blocked`, note they may be in a temporary OTP lockout.
+
+---
+
+## TypeScript interfaces
+
+```typescript
+interface AdminOtpUnverifiedItem {
+  userId: string;
+  phone: string | null;
+  lastOtpRequestedAt: string | null;
+  otpVerifiedAt: string | null;
+  lastOtpFailedAt: string | null;
+  otpAttempts: number;
+  lastOtpChannel: string | null;
+  profileRegistered: boolean;
+  blocked: boolean;
+  blockedUntil: string | null;
+  accountStatus: string | null;
+}
+
+interface AdminOtpUnverifiedResponse {
+  start: string;
+  end: string;
+  total: number;
+  page: number;
+  size: number;
+  items: AdminOtpUnverifiedItem[];
+}
+```
+
+---
+
+## Pitfalls
+
+1. **Not equal to metric gap** — `total` here will not always equal `otp_requested.total − otp_success.total` from `/analytics/otp`.
+2. **Returning users** — `profileRegistered=true` with a new unverified request is expected; they still belong on this list.
+3. **Privacy** — phones are PII; restrict to ops roles and avoid logging full numbers in the client.
+4. **Blocked users** — may need to wait until `blockedUntil` before they can verify again.
+5. **Deleted accounts** — excluded.
+
+---
+
+## Errors
+
+| Status | When |
+|--------|------|
+| `401` / `403` | Missing or non-admin auth |
+| `400` | `start >= end` after defaults |

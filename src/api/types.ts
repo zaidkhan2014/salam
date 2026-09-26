@@ -86,6 +86,36 @@ export interface AdminLoginFunnelResponse {
   existingUserLogin: GenderSnapshot
 }
 
+export interface AdminOtpUnverifiedItem {
+  userId: string
+  phone: string | null
+  lastOtpRequestedAt: IsoInstant | null
+  otpVerifiedAt: IsoInstant | null
+  lastOtpFailedAt: IsoInstant | null
+  otpAttempts: number
+  lastOtpChannel: string | null
+  profileRegistered: boolean
+  blocked: boolean
+  blockedUntil: IsoInstant | null
+  accountStatus: string | null
+}
+
+export interface AdminOtpUnverifiedResponse {
+  start: IsoInstant
+  end: IsoInstant
+  total: number
+  page: number
+  size: number
+  items: AdminOtpUnverifiedItem[]
+}
+
+export interface OtpUnverifiedFilters {
+  start?: IsoInstant
+  end?: IsoInstant
+  page?: number
+  size?: number
+}
+
 export interface AdminLifeTogetherOnboardingResponse {
   start: IsoInstant
   end: IsoInstant
@@ -388,6 +418,9 @@ export type ProfileStatusQueue = 'REJECTED' | 'PENDING'
 /** Query filter for basicDetails.profileCreatedFor buckets (omit = Any). */
 export type ProfileCreatedForFilter = 'SELF' | 'NON_SELF'
 
+/** Query filter for profile bio presence (omit = Any). */
+export type BioFilter = 'AVAILABLE' | 'NOT_AVAILABLE'
+
 export interface AdminReviewQueueItem {
   userId: string
   memberId: string | null
@@ -518,6 +551,9 @@ export interface AdminSalesLeadSummary {
   phone: string | null
   fullName: string | null
   gender: string | null
+  profileCreatedFor: string | null
+  /** true when profile bio is non-blank after trim */
+  hasBio: boolean
   city: string | null
   state: string | null
   country: string | null
@@ -858,6 +894,8 @@ export interface SalesLeadsFilters {
   maritalStatus?: string
   /** SELF | NON_SELF — omit for Any */
   profileCreatedFor?: ProfileCreatedForFilter
+  /** AVAILABLE | NOT_AVAILABLE — omit for Any */
+  bio?: BioFilter
   /** Exact match on basicDetails.country (display name, e.g. India) */
   country?: string
   state?: string

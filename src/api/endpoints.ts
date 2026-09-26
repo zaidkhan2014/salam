@@ -22,6 +22,7 @@ export const adminEndpoints = {
     searchIndex: `${ADMIN_API_BASE}/analytics/search-index`,
     otp: `${ADMIN_API_BASE}/analytics/otp`,
     loginFunnel: `${ADMIN_API_BASE}/analytics/login-funnel`,
+    otpUnverified: `${ADMIN_API_BASE}/analytics/otp-unverified`,
     likes: `${ADMIN_API_BASE}/analytics/likes`,
   },
   geo: {

@@ -14,6 +14,7 @@ export const routes = {
   searchIndex: '/search-index',
   otp: '/otp',
   loginFunnel: '/login-funnel',
+  otpUnverified: '/otp-unverified',
   likes: '/likes',
   users: '/users',
   userDetail: (userId: string) => `/users/${userId}`,

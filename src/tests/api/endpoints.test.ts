@@ -18,6 +18,7 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.analytics.searchIndex).toBe('/api/admin/analytics/search-index')
     expect(adminEndpoints.analytics.otp).toBe('/api/admin/analytics/otp')
     expect(adminEndpoints.analytics.loginFunnel).toBe('/api/admin/analytics/login-funnel')
+    expect(adminEndpoints.analytics.otpUnverified).toBe('/api/admin/analytics/otp-unverified')
     expect(adminEndpoints.analytics.likes).toBe('/api/admin/analytics/likes')
   })
 

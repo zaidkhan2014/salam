@@ -81,6 +81,27 @@ describe('salesListSearchParams', () => {
     ).toBeUndefined()
   })
 
+  it('round-trips bio in URL', () => {
+    const state = {
+      ...defaultSalesListUrlState(),
+      bio: 'AVAILABLE',
+    }
+    expect(roundTrip(state)).toEqual(state)
+  })
+
+  it('accepts known bio values and rejects unknown', () => {
+    expect(parseSalesListSearchParams(new URLSearchParams('bio=AVAILABLE')).bio).toBe('AVAILABLE')
+    expect(parseSalesListSearchParams(new URLSearchParams('bio=NOT_AVAILABLE')).bio).toBe('NOT_AVAILABLE')
+    expect(parseSalesListSearchParams(new URLSearchParams('bio=available')).bio).toBe('')
+  })
+
+  it('maps bio to API filters and omits Any', () => {
+    expect(salesListStateToApiFilters({ ...defaultSalesListUrlState(), bio: 'NOT_AVAILABLE' }, 20).bio).toBe(
+      'NOT_AVAILABLE',
+    )
+    expect(salesListStateToApiFilters({ ...defaultSalesListUrlState(), bio: '' }, 20).bio).toBeUndefined()
+  })
+
   it('round-trips minIncomeBandId in URL', () => {
     const state = {
       ...defaultSalesListUrlState(),

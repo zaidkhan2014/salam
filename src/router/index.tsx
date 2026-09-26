@@ -20,6 +20,7 @@ const SelfiePage = lazy(() => import('@/pages/selfie/SelfiePage'))
 const SearchIndexPage = lazy(() => import('@/pages/search-index/SearchIndexPage'))
 const OtpPage = lazy(() => import('@/pages/otp/OtpPage'))
 const LoginFunnelPage = lazy(() => import('@/pages/login-funnel/LoginFunnelPage'))
+const OtpUnverifiedPage = lazy(() => import('@/pages/otp-unverified/OtpUnverifiedPage'))
 const LikesPage = lazy(() => import('@/pages/likes/LikesPage'))
 const UsersPage = lazy(() => import('@/pages/users/UsersPage'))
 const UserDetailPage = lazy(() => import('@/pages/users/UserDetailPage'))
@@ -98,6 +99,7 @@ export const router = createBrowserRouter([
           { path: routes.searchIndex.slice(1), element: <SearchIndexPage /> },
           { path: routes.otp.slice(1), element: <OtpPage /> },
           { path: routes.loginFunnel.slice(1), element: <LoginFunnelPage /> },
+          { path: routes.otpUnverified.slice(1), element: <OtpUnverifiedPage /> },
           { path: routes.likes.slice(1), element: <LikesPage /> },
           { path: routes.users.slice(1), element: <UsersPage /> },
           { path: 'users/:userId', element: <UserDetailPage /> },

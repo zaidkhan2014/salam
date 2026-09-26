@@ -9,9 +9,11 @@ import type {
   AdminLoginFunnelResponse,
   AdminMetricsResponse,
   AdminOnboardingDropoffWithMediaResponse,
+  AdminOtpUnverifiedResponse,
   AnalyticsFilters,
   GenderMonitoringFilters,
   OnboardingDropoffFilters,
+  OtpUnverifiedFilters,
   RetentionFilters,
 } from '@/api/types'
 
@@ -235,6 +237,21 @@ export function useOtpMetrics(filters: AnalyticsFilters) {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.otp, {
         params: cleanQueryParams(filters),
       })
+      return response.data
+    },
+  })
+}
+
+export function useOtpUnverified(filters: OtpUnverifiedFilters) {
+  return useQuery({
+    queryKey: ['analytics', 'otp-unverified', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminOtpUnverifiedResponse>(
+        adminEndpoints.analytics.otpUnverified,
+        {
+          params: cleanQueryParams(filters),
+        },
+      )
       return response.data
     },
   })
