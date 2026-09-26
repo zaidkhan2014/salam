@@ -41,6 +41,23 @@ export function parseSalesMaritalStatus(raw: string | null | undefined): string 
   return SALES_MARITAL_STATUS_SET.has(raw) ? raw : ''
 }
 
+/** Query filter for basicDetails.profileCreatedFor buckets (omit = Any). */
+export const PROFILE_CREATED_FOR_FILTER_OPTIONS = [
+  { value: 'SELF', label: 'Self' },
+  { value: 'NON_SELF', label: 'Non-self' },
+] as const
+
+export type ProfileCreatedForFilterOption = (typeof PROFILE_CREATED_FOR_FILTER_OPTIONS)[number]['value']
+
+const PROFILE_CREATED_FOR_FILTER_SET = new Set<string>(
+  PROFILE_CREATED_FOR_FILTER_OPTIONS.map((option) => option.value),
+)
+
+export function parseProfileCreatedForFilter(raw: string | null | undefined): '' | ProfileCreatedForFilterOption {
+  if (!raw) return ''
+  return PROFILE_CREATED_FOR_FILTER_SET.has(raw) ? (raw as ProfileCreatedForFilterOption) : ''
+}
+
 export const SALES_SUMMARY_METRIC_LABELS: Record<string, string> = {
   sales_total_leads: 'Total leads',
   sales_call_remaining: 'Call remaining',

@@ -385,12 +385,16 @@ export type ProfileReviewCode =
 
 export type ProfileStatusQueue = 'REJECTED' | 'PENDING'
 
+/** Query filter for basicDetails.profileCreatedFor buckets (omit = Any). */
+export type ProfileCreatedForFilter = 'SELF' | 'NON_SELF'
+
 export interface AdminReviewQueueItem {
   userId: string
   memberId: string | null
   phone: string | null
   fullName: string | null
   gender: string | null
+  profileCreatedFor: string | null
   city: string | null
   state: string | null
   country: string | null
@@ -438,6 +442,7 @@ export interface ReviewQueueFilters {
   gender?: string
   profileStatus?: ProfileStatusQueue
   reviewCode?: ProfileReviewCode
+  profileCreatedFor?: ProfileCreatedForFilter
   start?: IsoInstant
   end?: IsoInstant
   page?: number
@@ -851,6 +856,8 @@ export interface SalesLeadsFilters {
   birthYear?: number
   /** Exact match on basicDetails.maritalStatus (trimmed, case-sensitive) */
   maritalStatus?: string
+  /** SELF | NON_SELF — omit for Any */
+  profileCreatedFor?: ProfileCreatedForFilter
   /** Exact match on basicDetails.country (display name, e.g. India) */
   country?: string
   state?: string

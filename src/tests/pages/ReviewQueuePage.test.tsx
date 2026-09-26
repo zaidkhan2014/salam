@@ -21,6 +21,7 @@ describe('ReviewQueuePage', () => {
     render(<ReviewQueuePage />)
     expect(screen.getByRole('heading', { name: 'Review Queue' })).toBeInTheDocument()
     expect(screen.getByLabelText('Filter by gender')).toBeInTheDocument()
+    expect(screen.getByLabelText('Filter by profile created for')).toBeInTheDocument()
     expect(screen.getByLabelText('Filter by profile status')).toBeInTheDocument()
     expect(screen.getByLabelText('Filter by review code')).toBeInTheDocument()
     expect(screen.getByText('No profiles in review queue.')).toBeInTheDocument()

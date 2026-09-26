@@ -1,5 +1,10 @@
 import { useMemo, useState } from 'react'
-import type { AdminReviewQueueItem, ProfileReviewCode, ProfileStatusQueue } from '@/api/types'
+import type {
+  AdminReviewQueueItem,
+  ProfileCreatedForFilter,
+  ProfileReviewCode,
+  ProfileStatusQueue,
+} from '@/api/types'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
@@ -18,6 +23,7 @@ import {
   approveDisabledReason,
   reviewCodeLabel,
 } from '@/pages/review-queue/reviewQueueConstants'
+import { PROFILE_CREATED_FOR_FILTER_OPTIONS } from '@/pages/sales/salesConstants'
 import { toUtcIso } from '@/utils/date'
 import { formatDateTime } from '@/utils/format'
 
@@ -39,6 +45,7 @@ function PhotoThumb({ url, alt }: { url: string | null | undefined; alt: string 
 
 export default function ReviewQueuePage() {
   const [gender, setGender] = useState('')
+  const [profileCreatedFor, setProfileCreatedFor] = useState<'' | ProfileCreatedForFilter>('')
   const [profileStatus, setProfileStatus] = useState<'' | ProfileStatusQueue>('')
   const [reviewCode, setReviewCode] = useState<'' | ProfileReviewCode>('')
   const [start, setStart] = useState('')
@@ -52,6 +59,7 @@ export default function ReviewQueuePage() {
 
   const filters = {
     gender: gender || undefined,
+    profileCreatedFor: profileCreatedFor || undefined,
     profileStatus: profileStatus || undefined,
     reviewCode: reviewCode || undefined,
     start: toUtcIso(start),
@@ -114,6 +122,24 @@ export default function ReviewQueuePage() {
               <option value="">Any</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
+            </Select>
+          </label>
+          <label className="text-sm text-slate-600">
+            <span className="mb-1 block">Created for</span>
+            <Select
+              aria-label="Filter by profile created for"
+              value={profileCreatedFor}
+              onChange={(event) => {
+                setProfileCreatedFor(event.target.value as '' | ProfileCreatedForFilter)
+                setPage(0)
+              }}
+            >
+              <option value="">Any</option>
+              {PROFILE_CREATED_FOR_FILTER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </Select>
           </label>
           <label className="text-sm text-slate-600">
@@ -222,6 +248,7 @@ export default function ReviewQueuePage() {
                 <tr>
                   <th className="px-3 py-2">Name</th>
                   <th className="px-3 py-2">Gender</th>
+                  <th className="px-3 py-2">Created for</th>
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">Code</th>
                   <th className="px-3 py-2">Similarity</th>
@@ -241,6 +268,7 @@ export default function ReviewQueuePage() {
                         <p className="mt-0.5 font-mono text-xs text-slate-500">{item.memberId ?? item.userId}</p>
                       </td>
                       <td className="px-3 py-2">{item.gender ?? '--'}</td>
+                      <td className="px-3 py-2">{item.profileCreatedFor ?? '--'}</td>
                       <td className="px-3 py-2">{item.profileStatus ?? '--'}</td>
                       <td className="max-w-[220px] px-3 py-2">
                         <p className="font-medium text-slate-800">{reviewCodeLabel(item.reviewCode)}</p>
