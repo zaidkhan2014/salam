@@ -44,6 +44,10 @@ export const adminEndpoints = {
     list: `${ADMIN_API_BASE}/reports`,
     detail: (reportId: string) => `${ADMIN_API_BASE}/reports/${reportId}`,
   },
+  chat: {
+    conversations: `${ADMIN_API_BASE}/chat/conversations`,
+    messages: (matchId: string) => `${ADMIN_API_BASE}/chat/conversations/${matchId}/messages`,
+  },
   sales: {
     leads: `${ADMIN_API_BASE}/sales/leads`,
     detail: (userId: string) => `${ADMIN_API_BASE}/sales/leads/${userId}`,

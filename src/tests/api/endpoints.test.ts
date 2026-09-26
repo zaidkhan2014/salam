@@ -45,6 +45,11 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.reports.detail('rep-1')).toBe('/api/admin/reports/rep-1')
   })
 
+  it('creates chat conversation endpoints', () => {
+    expect(adminEndpoints.chat.conversations).toBe('/api/admin/chat/conversations')
+    expect(adminEndpoints.chat.messages('match-1')).toBe('/api/admin/chat/conversations/match-1/messages')
+  })
+
   it('creates sales endpoints', () => {
     expect(adminEndpoints.sales.leads).toBe('/api/admin/sales/leads')
     expect(adminEndpoints.sales.detail('user-1')).toBe('/api/admin/sales/leads/user-1')

@@ -482,6 +482,67 @@ export interface ReviewQueueFilters {
   size?: number
 }
 
+// --- Admin chat conversations ---
+
+export interface AdminChatParticipantCard {
+  userId: string
+  memberId: string | null
+  fullName: string | null
+  phone: string | null
+}
+
+export interface AdminChatConversationSummary {
+  matchId: string
+  conversationId: string
+  userA: string
+  userB: string
+  matchedAt: IsoInstant | null
+  lastActivityAt: IsoInstant | null
+  chatStatus: string | null
+  participantA: AdminChatParticipantCard
+  participantB: AdminChatParticipantCard
+  lastMessageText: string | null
+  lastMessageAt: IsoInstant | null
+  lastMessageAuthorId: string | null
+}
+
+export interface AdminChatConversationSearchResponse {
+  start: IsoInstant
+  end: IsoInstant
+  total: number
+  page: number
+  size: number
+  items: AdminChatConversationSummary[]
+}
+
+export interface AdminChatMessageItem {
+  sid: string
+  authorUserId: string | null
+  body: string | null
+  sentAt: IsoInstant | null
+}
+
+export interface AdminChatMessagesResponse {
+  matchId: string
+  conversationId: string
+  items: AdminChatMessageItem[]
+  nextPageToken: string | null
+}
+
+export interface ChatConversationsFilters {
+  start?: IsoInstant
+  end?: IsoInstant
+  query?: string
+  page?: number
+  size?: number
+}
+
+export interface ChatMessagesFilters {
+  size?: number
+  order?: 'asc' | 'desc'
+  pageToken?: string
+}
+
 // --- Reports ---
 
 export type ReportReason =

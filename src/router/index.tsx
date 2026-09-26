@@ -11,6 +11,7 @@ const FunnelPage = lazy(() => import('@/pages/funnel/FunnelPage'))
 const RevenuePage = lazy(() => import('@/pages/revenue/RevenuePage'))
 const MatchingPage = lazy(() => import('@/pages/matching/MatchingPage'))
 const ChatPage = lazy(() => import('@/pages/chat/ChatPage'))
+const ChatConversationsPage = lazy(() => import('@/pages/chat-conversations/ChatConversationsPage'))
 const SafetyPage = lazy(() => import('@/pages/safety/SafetyPage'))
 const DemographicsPage = lazy(() => import('@/pages/demographics/DemographicsPage'))
 const OnboardingDropoffPage = lazy(() => import('@/pages/onboarding-dropoff/OnboardingDropoffPage'))
@@ -90,6 +91,7 @@ export const router = createBrowserRouter([
           { path: routes.revenue.slice(1), element: <RevenuePage /> },
           { path: routes.matching.slice(1), element: <MatchingPage /> },
           { path: routes.chat.slice(1), element: <ChatPage /> },
+          { path: routes.chatConversations.slice(1), element: <ChatConversationsPage /> },
           { path: routes.safety.slice(1), element: <SafetyPage /> },
           { path: routes.demographics.slice(1), element: <DemographicsPage /> },
           { path: routes.onboardingDropoff.slice(1), element: <OnboardingDropoffPage /> },

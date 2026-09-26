@@ -5,6 +5,7 @@ export const routes = {
   revenue: '/revenue',
   matching: '/matching',
   chat: '/chat',
+  chatConversations: '/chat-conversations',
   safety: '/safety',
   demographics: '/demographics',
   onboardingDropoff: '/onboarding-dropoff',
