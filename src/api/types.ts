@@ -482,6 +482,38 @@ export interface ReviewQueueFilters {
   size?: number
 }
 
+export interface AdminNonIndianOnboardedItem {
+  userId: string
+  memberId: string | null
+  phone: string | null
+  fullName: string | null
+  gender: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  onboardingCompletedAt: IsoInstant | null
+  profileStatus: string | null
+  accountStatus: string | null
+  subscribed: boolean
+  createdAt: IsoInstant | null
+}
+
+export interface AdminNonIndianOnboardedResponse {
+  start: IsoInstant
+  end: IsoInstant
+  total: number
+  page: number
+  size: number
+  items: AdminNonIndianOnboardedItem[]
+}
+
+export interface NonIndianOnboardedFilters {
+  start?: IsoInstant
+  end?: IsoInstant
+  page?: number
+  size?: number
+}
+
 // --- Admin chat conversations ---
 
 export interface AdminChatParticipantCard {

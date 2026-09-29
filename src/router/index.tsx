@@ -24,6 +24,7 @@ const LoginFunnelPage = lazy(() => import('@/pages/login-funnel/LoginFunnelPage'
 const OtpUnverifiedPage = lazy(() => import('@/pages/otp-unverified/OtpUnverifiedPage'))
 const LikesPage = lazy(() => import('@/pages/likes/LikesPage'))
 const UsersPage = lazy(() => import('@/pages/users/UsersPage'))
+const NonIndianOnboardedPage = lazy(() => import('@/pages/non-indian-onboarded/NonIndianOnboardedPage'))
 const UserDetailPage = lazy(() => import('@/pages/users/UserDetailPage'))
 const ReviewQueuePage = lazy(() => import('@/pages/review-queue/ReviewQueuePage'))
 const ReportsPage = lazy(() => import('@/pages/reports/ReportsPage'))
@@ -104,6 +105,7 @@ export const router = createBrowserRouter([
           { path: routes.otpUnverified.slice(1), element: <OtpUnverifiedPage /> },
           { path: routes.likes.slice(1), element: <LikesPage /> },
           { path: routes.users.slice(1), element: <UsersPage /> },
+          { path: routes.nonIndianOnboarded.slice(1), element: <NonIndianOnboardedPage /> },
           { path: 'users/:userId', element: <UserDetailPage /> },
           { path: routes.reviewQueue.slice(1), element: <ReviewQueuePage /> },
           { path: routes.reports.slice(1), element: <ReportsPage /> },

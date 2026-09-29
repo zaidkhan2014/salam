@@ -18,6 +18,7 @@ export const routes = {
   otpUnverified: '/otp-unverified',
   likes: '/likes',
   users: '/users',
+  nonIndianOnboarded: '/non-indian-onboarded',
   userDetail: (userId: string) => `/users/${userId}`,
   reviewQueue: '/review-queue',
   reports: '/reports',

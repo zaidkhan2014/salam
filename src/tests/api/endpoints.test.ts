@@ -38,6 +38,7 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.users.forceApproveReview('user-1')).toBe(
       '/api/admin/users/user-1/force-approve-review',
     )
+    expect(adminEndpoints.users.nonIndianOnboarded).toBe('/api/admin/users/non-indian-onboarded')
   })
 
   it('creates report endpoints', () => {

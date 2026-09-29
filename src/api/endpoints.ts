@@ -39,6 +39,7 @@ export const adminEndpoints = {
     deleted: `${ADMIN_API_BASE}/users/deleted`,
     reviewQueue: `${ADMIN_API_BASE}/users/review-queue`,
     forceApproveReview: (userId: string) => `${ADMIN_API_BASE}/users/${userId}/force-approve-review`,
+    nonIndianOnboarded: `${ADMIN_API_BASE}/users/non-indian-onboarded`,
   },
   reports: {
     list: `${ADMIN_API_BASE}/reports`,

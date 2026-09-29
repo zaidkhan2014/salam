@@ -4,9 +4,11 @@ import { adminEndpoints } from '@/api/endpoints'
 import { cleanQueryParams } from '@/api/params'
 import type {
   AdminForceApproveReviewResponse,
+  AdminNonIndianOnboardedResponse,
   AdminReviewQueueResponse,
   AdminUserDetailResponse,
   AdminUserSearchResponse,
+  NonIndianOnboardedFilters,
   ReviewQueueFilters,
   UserSearchFilters,
 } from '@/api/types'
@@ -72,6 +74,21 @@ export function useAdminReviewQueue(filters: ReviewQueueFilters) {
       const response = await adminClient.get<AdminReviewQueueResponse>(adminEndpoints.users.reviewQueue, {
         params: cleanQueryParams(filters),
       })
+      return response.data
+    },
+  })
+}
+
+export function useAdminNonIndianOnboarded(filters: NonIndianOnboardedFilters) {
+  return useQuery({
+    queryKey: ['users', 'non-indian-onboarded', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminNonIndianOnboardedResponse>(
+        adminEndpoints.users.nonIndianOnboarded,
+        {
+          params: cleanQueryParams(filters),
+        },
+      )
       return response.data
     },
   })
