@@ -23,6 +23,8 @@ export const adminEndpoints = {
     otp: `${ADMIN_API_BASE}/analytics/otp`,
     loginFunnel: `${ADMIN_API_BASE}/analytics/login-funnel`,
     otpUnverified: `${ADMIN_API_BASE}/analytics/otp-unverified`,
+    deletedApprovedByDay: `${ADMIN_API_BASE}/analytics/deleted-approved-by-day`,
+    onboardedByDay: `${ADMIN_API_BASE}/analytics/onboarded-by-day`,
     likes: `${ADMIN_API_BASE}/analytics/likes`,
   },
   geo: {

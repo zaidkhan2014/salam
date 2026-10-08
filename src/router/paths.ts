@@ -9,6 +9,7 @@ export const routes = {
   safety: '/safety',
   demographics: '/demographics',
   onboardingDropoff: '/onboarding-dropoff',
+  dayGenderCounts: '/day-gender-counts',
   retention: '/retention',
   lifeTogether: '/life-together',
   selfie: '/selfie',

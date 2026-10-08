@@ -73,9 +73,11 @@ export default function OtpUnverifiedPage() {
       </Card>
 
       <p className="text-sm text-slate-600">
-        Total unverified:{' '}
+        Total · India · Non-IN:{' '}
         <span className="font-semibold text-slate-900">
-          {query.data ? formatNumber(query.data.total) : '—'}
+          {query.data
+            ? `${formatNumber(query.data.total)} · ${formatNumber(query.data.indiaCount)} · ${formatNumber(query.data.nonIndiaCount)}`
+            : '—'}
         </span>
       </p>
 

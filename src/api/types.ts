@@ -104,9 +104,27 @@ export interface AdminOtpUnverifiedResponse {
   start: IsoInstant
   end: IsoInstant
   total: number
+  /** Full-cohort phones matching ^+91 (not page-scoped) */
+  indiaCount: number
+  /** total - indiaCount */
+  nonIndiaCount: number
   page: number
   size: number
   items: AdminOtpUnverifiedItem[]
+}
+
+export interface AdminDayGenderCountsResponse {
+  day: string
+  dayStart: IsoInstant
+  dayEnd: IsoInstant
+  maleCount: number
+  femaleCount: number
+  unknownCount: number
+  totalCount: number
+}
+
+export interface DayGenderCountsFilters {
+  day: string
 }
 
 export interface OtpUnverifiedFilters {
@@ -647,6 +665,11 @@ export interface AdminSalesLeadSummary {
   profileCreatedFor: string | null
   /** true when profile bio is non-blank after trim */
   hasBio: boolean
+  bio: string | null
+  education: string | null
+  profession: string | null
+  /** Cloudinary secure URL of primary gallery image */
+  primaryImageUrl: string | null
   city: string | null
   state: string | null
   country: string | null
@@ -711,6 +734,14 @@ export interface AdminDeletedSalesLeadSummary {
   phone: string | null
   fullName: string | null
   gender: string | null
+  profileCreatedFor: string | null
+  /** true when profile bio is non-blank after trim */
+  hasBio: boolean
+  bio: string | null
+  education: string | null
+  profession: string | null
+  /** Cloudinary secure URL of primary gallery image */
+  primaryImageUrl: string | null
   city: string | null
   state: string | null
   country: string | null
@@ -989,6 +1020,10 @@ export interface SalesLeadsFilters {
   profileCreatedFor?: ProfileCreatedForFilter
   /** AVAILABLE | NOT_AVAILABLE — omit for Any */
   bio?: BioFilter
+  /** Exact labels; send as repeated query params */
+  education?: string[]
+  /** Exact labels; send as repeated query params */
+  profession?: string[]
   /** Exact match on basicDetails.country (display name, e.g. India) */
   country?: string
   state?: string

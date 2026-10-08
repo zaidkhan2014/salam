@@ -19,6 +19,10 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.analytics.otp).toBe('/api/admin/analytics/otp')
     expect(adminEndpoints.analytics.loginFunnel).toBe('/api/admin/analytics/login-funnel')
     expect(adminEndpoints.analytics.otpUnverified).toBe('/api/admin/analytics/otp-unverified')
+    expect(adminEndpoints.analytics.deletedApprovedByDay).toBe(
+      '/api/admin/analytics/deleted-approved-by-day',
+    )
+    expect(adminEndpoints.analytics.onboardedByDay).toBe('/api/admin/analytics/onboarded-by-day')
     expect(adminEndpoints.analytics.likes).toBe('/api/admin/analytics/likes')
   })
 

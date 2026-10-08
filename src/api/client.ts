@@ -12,6 +12,8 @@ function redirectToLogin() {
 export const adminClient = axios.create({
   baseURL: import.meta.env.VITE_ADMIN_API_BASE_URL ?? '',
   timeout: 20000,
+  // Spring expects repeated keys: education=A&education=B (not education[]=…)
+  paramsSerializer: { indexes: null },
 })
 
 adminClient.interceptors.request.use((config) => {

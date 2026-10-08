@@ -124,6 +124,33 @@ describe('deletedAccountsListSearchParams', () => {
     expect(parseDeletedAccountsListSearchParams(new URLSearchParams('bio=available')).bio).toBe('')
   })
 
+  it('round-trips repeated education and profession labels', () => {
+    const state = {
+      ...defaultDeletedAccountsListUrlState(),
+      education: ["Bachelor's Degree", 'Doctorate'],
+      profession: ['Teacher', 'Nurse'],
+    }
+    const params = toDeletedAccountsListSearchParams(state)
+    expect(params.getAll('education')).toEqual(["Bachelor's Degree", 'Doctorate'])
+    expect(params.getAll('profession')).toEqual(['Teacher', 'Nurse'])
+    expect(roundTrip(state)).toEqual(state)
+    expect(deletedAccountsListStateToApiFilters(state, 20)).toMatchObject({
+      education: ["Bachelor's Degree", 'Doctorate'],
+      profession: ['Teacher', 'Nurse'],
+    })
+    expect(
+      deletedAccountsListStateToApiFilters(defaultDeletedAccountsListUrlState(), 20).education,
+    ).toBeUndefined()
+  })
+
+  it('keeps only known education/profession labels from URL', () => {
+    const parsed = parseDeletedAccountsListSearchParams(
+      new URLSearchParams('education=Secondary%20School&education=Nope&profession=Chef&profession=Nope'),
+    )
+    expect(parsed.education).toEqual(['Secondary School'])
+    expect(parsed.profession).toEqual(['Chef'])
+  })
+
   it('deletionRangePreset returns datetime-local start/end', () => {
     const range = deletionRangePreset(7)
     expect(range.start).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)

@@ -25,6 +25,7 @@ import {
   UserCheck,
   UserMinus,
   UserX,
+  UsersRound,
 } from 'lucide-react'
 import { useAuth } from '@/features/auth/useAuth'
 import { useAdminVipPendingCount } from '@/hooks/api/useAdminVip'
@@ -42,6 +43,7 @@ const links = [
   { to: routes.safety, label: 'Safety', icon: ShieldAlert },
   { to: routes.demographics, label: 'Demographics', icon: PieChart },
   { to: routes.onboardingDropoff, label: 'Onboarding Dropoff', icon: UserMinus },
+  { to: routes.dayGenderCounts, label: 'Day Gender Counts', icon: UsersRound },
   { to: routes.retention, label: 'Retention', icon: Repeat },
   { to: routes.lifeTogether, label: 'Life Together', icon: HandCoins },
   { to: routes.selfie, label: 'Selfie', icon: BadgeCheck },
@@ -85,8 +87,8 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen min-w-0 bg-slate-50 md:grid md:grid-cols-[240px_minmax(0,1fr)]">
-      <aside className="sticky top-0 z-10 flex h-fit min-w-0 items-center justify-between border-b border-slate-200 bg-white p-3 md:h-screen md:flex-col md:items-stretch md:justify-start md:border-b-0 md:border-r md:p-4">
-        <div>
+      <aside className="sticky top-0 z-10 flex h-fit min-w-0 items-center justify-between border-b border-slate-200 bg-white p-3 md:h-screen md:flex-col md:items-stretch md:justify-start md:overflow-hidden md:border-b-0 md:border-r md:p-4">
+        <div className="min-w-0 md:min-h-0 md:flex-1 md:overflow-y-auto">
           <h2 className="mb-4 text-lg font-semibold text-slate-900">Admin Panel</h2>
           <nav className="hidden space-y-1 md:block">
             {links.map((item) => (
@@ -117,7 +119,7 @@ export function AppShell() {
             logout()
             navigate(routes.login)
           }}
-          className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 md:mt-auto md:border-t md:border-slate-200 md:pt-3"
         >
           <LogOut size={16} />
           Logout

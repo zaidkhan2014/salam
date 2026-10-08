@@ -3,6 +3,7 @@ import { adminClient } from '@/api/client'
 import { adminEndpoints } from '@/api/endpoints'
 import { cleanQueryParams } from '@/api/params'
 import type {
+  AdminDayGenderCountsResponse,
   AdminGenderMonitoringResponse,
   AdminGeoByGenderResponse,
   AdminLifeTogetherOnboardingResponse,
@@ -11,6 +12,7 @@ import type {
   AdminOnboardingDropoffWithMediaResponse,
   AdminOtpUnverifiedResponse,
   AnalyticsFilters,
+  DayGenderCountsFilters,
   GenderMonitoringFilters,
   OnboardingDropoffFilters,
   OtpUnverifiedFilters,
@@ -254,6 +256,38 @@ export function useOtpUnverified(filters: OtpUnverifiedFilters) {
       )
       return response.data
     },
+  })
+}
+
+export function useDeletedApprovedByDay(filters: DayGenderCountsFilters | null) {
+  return useQuery({
+    queryKey: ['analytics', 'deleted-approved-by-day', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminDayGenderCountsResponse>(
+        adminEndpoints.analytics.deletedApprovedByDay,
+        {
+          params: cleanQueryParams(filters ?? {}),
+        },
+      )
+      return response.data
+    },
+    enabled: Boolean(filters?.day),
+  })
+}
+
+export function useOnboardedByDay(filters: DayGenderCountsFilters | null) {
+  return useQuery({
+    queryKey: ['analytics', 'onboarded-by-day', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminDayGenderCountsResponse>(
+        adminEndpoints.analytics.onboardedByDay,
+        {
+          params: cleanQueryParams(filters ?? {}),
+        },
+      )
+      return response.data
+    },
+    enabled: Boolean(filters?.day),
   })
 }
 

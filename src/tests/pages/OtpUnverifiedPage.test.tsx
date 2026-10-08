@@ -5,7 +5,16 @@ import OtpUnverifiedPage from '@/pages/otp-unverified/OtpUnverifiedPage'
 
 vi.mock('@/hooks/api/useAdminAnalytics', () => ({
   useOtpUnverified: () => ({
-    data: { start: '', end: '', total: 0, page: 0, size: 20, items: [] },
+    data: {
+      start: '',
+      end: '',
+      total: 12,
+      indiaCount: 8,
+      nonIndiaCount: 4,
+      page: 0,
+      size: 20,
+      items: [],
+    },
     error: null,
     isError: false,
     isLoading: false,
@@ -14,7 +23,7 @@ vi.mock('@/hooks/api/useAdminAnalytics', () => ({
 }))
 
 describe('OtpUnverifiedPage', () => {
-  it('renders header, date controls, and empty state', () => {
+  it('renders header, date controls, India/Non-IN counts, and empty state', () => {
     render(
       <MemoryRouter>
         <OtpUnverifiedPage />
@@ -23,7 +32,8 @@ describe('OtpUnverifiedPage', () => {
     expect(screen.getByRole('heading', { name: 'OTP Unverified' })).toBeInTheDocument()
     expect(screen.getByLabelText('start-date')).toBeInTheDocument()
     expect(screen.getByLabelText('end-date')).toBeInTheDocument()
-    expect(screen.getByText('Total unverified:')).toBeInTheDocument()
+    expect(screen.getByText('Total · India · Non-IN:')).toBeInTheDocument()
+    expect(screen.getByText('12 · 8 · 4')).toBeInTheDocument()
     expect(screen.getByText('No unverified OTP requests.')).toBeInTheDocument()
   })
 })
