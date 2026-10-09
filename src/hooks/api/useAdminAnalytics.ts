@@ -4,6 +4,7 @@ import { adminEndpoints } from '@/api/endpoints'
 import { cleanQueryParams } from '@/api/params'
 import type {
   AdminDayGenderCountsResponse,
+  AdminDeletedApprovedByDayResponse,
   AdminGenderMonitoringResponse,
   AdminGeoByGenderResponse,
   AdminLifeTogetherOnboardingResponse,
@@ -263,7 +264,7 @@ export function useDeletedApprovedByDay(filters: DayGenderCountsFilters | null) 
   return useQuery({
     queryKey: ['analytics', 'deleted-approved-by-day', filters],
     queryFn: async () => {
-      const response = await adminClient.get<AdminDayGenderCountsResponse>(
+      const response = await adminClient.get<AdminDeletedApprovedByDayResponse>(
         adminEndpoints.analytics.deletedApprovedByDay,
         {
           params: cleanQueryParams(filters ?? {}),

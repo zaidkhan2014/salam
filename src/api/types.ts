@@ -123,6 +123,14 @@ export interface AdminDayGenderCountsResponse {
   totalCount: number
 }
 
+/** Deleted-approved-by-day: shared gender counts plus same-day create+delete subset. */
+export interface AdminDeletedApprovedByDayResponse extends AdminDayGenderCountsResponse {
+  sameDayCreatedDeletedMaleCount: number
+  sameDayCreatedDeletedFemaleCount: number
+  sameDayCreatedDeletedUnknownCount: number
+  sameDayCreatedDeletedTotalCount: number
+}
+
 export interface DayGenderCountsFilters {
   day: string
 }
