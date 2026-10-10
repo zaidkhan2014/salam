@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { UserLink } from '@/components/common/UserLink'
+import { LeadPhotoThumb } from '@/components/sales/LeadPhotoThumb'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAdminVipFollowUps } from '@/hooks/api/useAdminVip'
@@ -84,6 +85,7 @@ export default function VipFollowUpsPage() {
               <thead className="bg-slate-100 text-slate-600">
                 <tr>
                   <th className="px-3 py-2">Lead</th>
+                  <th className="px-3 py-2">Photo</th>
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">VIP plan</th>
                   <th className="px-3 py-2">Assigned</th>
@@ -93,9 +95,15 @@ export default function VipFollowUpsPage() {
               </thead>
               <tbody>
                 {query.data.items.map((lead) => (
-                  <tr key={lead.userId} className="border-t border-slate-100">
+                  <tr key={lead.userId} className="border-t border-slate-100 align-top">
                     <td className="px-3 py-2">
                       <UserLink userId={lead.userId} label={lead.fullName ?? lead.userId} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <LeadPhotoThumb
+                        url={lead.primaryImageUrl}
+                        alt={`${lead.fullName ?? lead.userId} photo`}
+                      />
                     </td>
                     <td className="px-3 py-2">{lead.status}</td>
                     <td className="px-3 py-2">{lead.vipTitle ?? '--'}</td>

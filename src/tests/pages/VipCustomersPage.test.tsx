@@ -13,6 +13,9 @@ vi.mock('@/hooks/api/useAdminVip', () => ({
           phone: null,
           fullName: 'Aisha Khan',
           gender: 'Female',
+          hasBio: true,
+          bio: 'Looking for a kind, practicing partner.',
+          primaryImageUrl: 'https://example.com/photo.jpg',
           city: 'Lucknow',
           state: 'Uttar Pradesh',
           country: 'India',
@@ -80,10 +83,13 @@ describe('VipCustomersPage', () => {
         <VipCustomersPage />
       </MemoryRouter>,
     )
+    expect(screen.getByRole('columnheader', { name: 'Photo' })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'Bio' })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'State' })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'City' })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'Profession' })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'Income' })).toBeInTheDocument()
+    expect(screen.getByText('Looking for a kind, practicing partner.')).toBeInTheDocument()
     expect(screen.getByText('Uttar Pradesh')).toBeInTheDocument()
     expect(screen.getByText('Software Engineer')).toBeInTheDocument()
     expect(screen.getByText('₹30–₹40 Lakh')).toBeInTheDocument()
