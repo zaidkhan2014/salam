@@ -57,6 +57,7 @@ const links = [
   { to: routes.reviewQueue, label: 'Review Queue', icon: UserCheck },
   { to: routes.reports, label: 'Reports', icon: ClipboardList },
   { to: routes.sales, label: 'Sales', icon: Database },
+  { to: routes.activeUsers, label: 'Active Users', icon: UsersRound },
   { to: routes.vip, label: 'VIP Customers', icon: Crown, showVipBadge: true },
   { to: routes.deletedAccounts, label: 'Deleted Accounts', icon: UserX },
 ] as const

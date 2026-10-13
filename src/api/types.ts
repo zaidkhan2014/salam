@@ -734,7 +734,20 @@ export interface AdminSalesLeadDetailResponse {
   salesUpdatedAt: IsoInstant | null
 }
 
-export type AdminSalesViewScope = 'LIVE' | 'DELETED'
+export type AdminSalesViewScope = 'LIVE' | 'DELETED' | 'ACTIVE'
+
+/** Live sales summary plus last-activity fields from user_daily_activity. */
+export interface AdminActiveSalesLeadSummary extends AdminSalesLeadSummary {
+  lastActiveAt: IsoInstant | null
+  lastActivityDayUtc: IsoInstant | null
+}
+
+export interface AdminActiveSalesLeadSearchResponse {
+  items: AdminActiveSalesLeadSummary[]
+  page: number
+  size: number
+  total: number
+}
 
 export interface AdminDeletedSalesLeadSummary {
   userId: string
@@ -1051,6 +1064,9 @@ export interface SalesLeadsFilters {
 
 /** Same as SalesLeadsFilters but no accountStatus (archives only). start/end = deletionAt. */
 export type DeletedSalesLeadsFilters = Omit<SalesLeadsFilters, 'accountStatus'>
+
+/** Same filter shape as live sales; start/end filter activityDayUtc. */
+export type ActiveSalesLeadsFilters = SalesLeadsFilters
 
 export interface AdminVipLeadSummary {
   userId: string
