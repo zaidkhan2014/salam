@@ -11,6 +11,7 @@ import {
   Globe,
   MessageSquare,
   MessagesSquare,
+  Heart,
   HeartHandshake,
   IndianRupee,
   PieChart,
@@ -58,6 +59,7 @@ const links = [
   { to: routes.reports, label: 'Reports', icon: ClipboardList },
   { to: routes.sales, label: 'Sales', icon: Database },
   { to: routes.activeUsers, label: 'Active Users', icon: UsersRound },
+  { to: routes.matchedUsers, label: 'Matched Users', icon: Heart },
   { to: routes.vip, label: 'VIP Customers', icon: Crown, showVipBadge: true },
   { to: routes.deletedAccounts, label: 'Deleted Accounts', icon: UserX },
 ] as const

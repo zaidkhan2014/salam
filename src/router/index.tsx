@@ -54,6 +54,7 @@ const ActiveUsersFollowUpsPage = lazy(() => import('@/pages/active-users/ActiveU
 const ActiveUsersConversionsPage = lazy(() => import('@/pages/active-users/ActiveUsersConversionsPage'))
 const ActiveUsersPerformancePage = lazy(() => import('@/pages/active-users/ActiveUsersPerformancePage'))
 const ActiveUsersLeadDetailPage = lazy(() => import('@/pages/active-users/ActiveUsersLeadDetailPage'))
+const MatchedUsersPage = lazy(() => import('@/pages/matched-users/MatchedUsersPage'))
 
 function LoadingRoute() {
   return <div className="p-6 text-sm text-slate-500">Loading page...</div>
@@ -135,6 +136,7 @@ export const router = createBrowserRouter([
           { path: 'active-users/conversions', element: <ActiveUsersConversionsPage /> },
           { path: 'active-users/performance', element: <ActiveUsersPerformancePage /> },
           { path: 'active-users/:userId', element: <ActiveUsersLeadDetailPage /> },
+          { path: routes.matchedUsers.slice(1), element: <MatchedUsersPage /> },
         ],
       },
     ],

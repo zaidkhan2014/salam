@@ -42,4 +42,5 @@ export const routes = {
   activeUsersConversions: '/active-users/conversions',
   activeUsersPerformance: '/active-users/performance',
   activeUsersLeadDetail: (userId: string) => `/active-users/${userId}`,
+  matchedUsers: '/matched-users',
 } as const
