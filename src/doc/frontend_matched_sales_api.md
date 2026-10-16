@@ -58,7 +58,7 @@ export interface AdminSalesLeadSearchResponse {
 }
 ```
 
-`AdminSalesLeadSummary` fields match live sales (phone, bio, education, profession, primaryImageUrl, salesStatus, etc.). Users without a `user_profiles` row are dropped after lookup.
+`AdminSalesLeadSummary` fields match live sales (phone, bio, education, profession, primaryImageUrl, salesStatus, `dateOfBirth`, `age`, `maritalStatus`, etc.). Users without a `user_profiles` row are dropped after lookup.
 
 ---
 

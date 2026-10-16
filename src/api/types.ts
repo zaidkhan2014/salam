@@ -670,6 +670,11 @@ export interface AdminSalesLeadSummary {
   phone: string | null
   fullName: string | null
   gender: string | null
+  /** Profile basicDetails.dateOfBirth (yyyy-MM-dd) */
+  dateOfBirth?: string | null
+  /** Whole years from dateOfBirth in UTC; null if missing/invalid */
+  age?: number | null
+  maritalStatus?: string | null
   profileCreatedFor: string | null
   /** true when profile bio is non-blank after trim */
   hasBio: boolean
@@ -755,6 +760,11 @@ export interface AdminDeletedSalesLeadSummary {
   phone: string | null
   fullName: string | null
   gender: string | null
+  /** Profile basicDetails.dateOfBirth (yyyy-MM-dd) */
+  dateOfBirth?: string | null
+  /** Whole years from dateOfBirth in UTC; null if missing/invalid */
+  age?: number | null
+  maritalStatus?: string | null
   profileCreatedFor: string | null
   /** true when profile bio is non-blank after trim */
   hasBio: boolean

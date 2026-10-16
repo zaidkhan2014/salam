@@ -471,6 +471,9 @@ Subscribed profiles with sales assignee metadata.
   "phone": "+919876543210",
   "fullName": "Priya Sharma",
   "gender": "Female",
+  "dateOfBirth": "1995-03-12",
+  "age": 31,
+  "maritalStatus": "Never Married",
   "profileCreatedFor": "Self",
   "hasBio": true,
   "city": "Lucknow",
@@ -740,6 +743,9 @@ export interface AdminSalesLeadSummary {
   phone: string | null;
   fullName: string | null;
   gender: string | null;
+  dateOfBirth?: string | null;
+  age?: number | null;
+  maritalStatus?: string | null;
   profileCreatedFor: string | null;
   /** true when profile bio is non-blank after trim */
   hasBio: boolean;
