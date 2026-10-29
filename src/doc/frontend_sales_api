@@ -213,6 +213,8 @@ Show a dropdown when status is one of those two; block submit until selected.
 | `profileCreatedFor` | enum | `SELF` or `NON_SELF` (case-insensitive). `SELF` = Self; `NON_SELF` = Son / Daughter / Brother / Sister / Other. Omit = no filter. Other values → **400**. |
 | `bio` | enum | `AVAILABLE` or `NOT_AVAILABLE` (case-insensitive). `AVAILABLE` = non-blank bio (after trim); `NOT_AVAILABLE` = missing/null/blank/whitespace-only. Omit = no filter. Other values → **400**. |
 | `maritalStatus` | string | Exact match, e.g. `Never married` — **URL-encode spaces** |
+| `sect` | string | Exact match on `faithPractice.sect` (label), e.g. `Sunni (Hanafi)` — **URL-encode spaces** |
+| `caste` | string | Exact match on `faithPractice.caste` (label), e.g. `Ansari` — **URL-encode spaces**. Send display labels only (not slug ids). |
 | `state`, `city` | string | Exact match after trim — **URL-encode spaces**. For dropdown + search options use [`GEO_API_CLIENT.md`](./GEO_API_CLIENT.md) (`/api/geo`); pass the geo **`name`** (e.g. `Uttar Pradesh`), not state `code`. |
 | `birthYear` | int | 1900–2100 — **maximum birth year** (profiles born in that year **or earlier**). Example: `2000` → `dateOfBirth` ≤ `2000-12-31`. UI label suggestion: “Born on or before (year)”. Invalid years → **400**. |
 | `subscribed` | boolean | `true` / `false` |
@@ -612,6 +614,8 @@ Subscribed profiles with sales assignee metadata.
   "accountStatus": "ACTIVE",
   "status": "ALL",
   "birthYear": 1995,
+  "sect": "Sunni (Hanafi)",
+  "caste": "Ansari",
   "minIncomeBandId": "INC_IN_30_40",
   "sort": "leadScore",
   "size": 50
@@ -725,6 +729,10 @@ export interface SalesLeadsFilters {
   /** Maximum birth year (inclusive) — born on or before Dec 31 of this year */
   birthYear?: number;
   maritalStatus?: string;
+  /** Exact match on faithPractice.sect (label) */
+  sect?: string;
+  /** Exact match on faithPractice.caste (label) */
+  caste?: string;
   state?: string;
   city?: string;
   /** e.g. INC_IN_30_40 — see FRONTEND_SALES_INCOME_BANDS.md */
