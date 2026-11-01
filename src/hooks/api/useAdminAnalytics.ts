@@ -20,12 +20,16 @@ import type {
   RetentionFilters,
 } from '@/api/types'
 
+/** Wide date-range metrics can exceed the default 20s client timeout. */
+const ANALYTICS_REQUEST_TIMEOUT_MS = 5 * 60 * 1000
+
 export function useOverviewMetrics(filters: AnalyticsFilters) {
   return useQuery({
     queryKey: ['analytics', 'overview', filters],
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.overview, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -38,6 +42,7 @@ export function useFunnelMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.funnel, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -50,6 +55,7 @@ export function useRevenueMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.revenue, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -62,6 +68,7 @@ export function useMatchingMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.matching, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -74,6 +81,7 @@ export function useChatMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.chat, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -86,6 +94,7 @@ export function useSafetyMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.safety, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -98,6 +107,7 @@ export function useDemographicsMetrics(filters: Omit<AnalyticsFilters, 'granular
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.demographics, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -115,6 +125,7 @@ export function useGenderMonitoringMetrics(filters: GenderMonitoringFilters) {
           granularity: filters.granularity,
           cityLimit: filters.cityLimit,
         }),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -127,6 +138,7 @@ export function useGeoByGenderMetrics(limit = 20) {
     queryFn: async () => {
       const response = await adminClient.get<AdminGeoByGenderResponse>(adminEndpoints.analytics.geoByGender, {
         params: cleanQueryParams({ limit }),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -159,6 +171,7 @@ export function useRetentionMetrics(filters: RetentionFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.retention, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -171,6 +184,7 @@ export function useLifeTogetherMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.lifeTogether, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -185,6 +199,7 @@ export function useLifeTogetherOnboardingMetrics(filters: Pick<AnalyticsFilters,
         adminEndpoints.analytics.lifeTogetherOnboarding,
         {
           params: cleanQueryParams(filters),
+          timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
         },
       )
       return response.data
@@ -198,6 +213,7 @@ export function useLoginFunnelMetrics(filters: Pick<AnalyticsFilters, 'start' | 
     queryFn: async () => {
       const response = await adminClient.get<AdminLoginFunnelResponse>(adminEndpoints.analytics.loginFunnel, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -210,6 +226,7 @@ export function useSelfieMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.selfie, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -222,6 +239,7 @@ export function useSearchIndexMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.searchIndex, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -239,6 +257,7 @@ export function useOtpMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.otp, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
@@ -253,6 +272,7 @@ export function useOtpUnverified(filters: OtpUnverifiedFilters) {
         adminEndpoints.analytics.otpUnverified,
         {
           params: cleanQueryParams(filters),
+          timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
         },
       )
       return response.data
@@ -268,6 +288,7 @@ export function useDeletedApprovedByDay(filters: DayGenderCountsFilters | null) 
         adminEndpoints.analytics.deletedApprovedByDay,
         {
           params: cleanQueryParams(filters ?? {}),
+          timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
         },
       )
       return response.data
@@ -284,6 +305,7 @@ export function useOnboardedByDay(filters: DayGenderCountsFilters | null) {
         adminEndpoints.analytics.onboardedByDay,
         {
           params: cleanQueryParams(filters ?? {}),
+          timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
         },
       )
       return response.data
@@ -298,6 +320,7 @@ export function useLikesMetrics(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminMetricsResponse>(adminEndpoints.analytics.likes, {
         params: cleanQueryParams(filters),
+        timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
       return response.data
     },
