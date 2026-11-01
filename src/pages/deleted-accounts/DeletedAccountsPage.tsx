@@ -6,6 +6,7 @@ import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { UserLink } from '@/components/common/UserLink'
 import { BioCell } from '@/components/sales/BioCell'
 import { LeadPhotoThumb } from '@/components/sales/LeadPhotoThumb'
+import { ListFiltersApplyBar } from '@/components/sales/ListFiltersApplyBar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { MultiSelect } from '@/components/ui/MultiSelect'
@@ -14,6 +15,7 @@ import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { GeoLocationFilters } from '@/components/geo/GeoLocationFilters'
 import { useAdminDeletedSalesLeads, useAdminDeletedSalesSummary } from '@/hooks/api/useAdminDeletedSales'
+import { useDeferredListFilters } from '@/hooks/useDeferredListFilters'
 import type { AdminSalesStatus } from '@/api/types'
 import { cn } from '@/lib/cn'
 import { DeletedAccountsSavedViews } from '@/pages/deleted-accounts/DeletedAccountsSavedViews'
@@ -65,6 +67,14 @@ export default function DeletedAccountsPage() {
     },
     [parsed, setSearchParams],
   )
+
+  const commitFilters = useCallback(
+    (next: DeletedAccountsListUrlState) => {
+      setSearchParams(toDeletedAccountsListSearchParams(next), { replace: true })
+    },
+    [setSearchParams],
+  )
+  const { draft, patchDraft, applyFilters, isDirty } = useDeferredListFilters(parsed, commitFilters)
 
   useEffect(() => {
     if (location.pathname !== routes.deletedAccounts) return
@@ -151,7 +161,7 @@ export default function DeletedAccountsPage() {
                     key={days}
                     type="button"
                     className="rounded-full border border-slate-200 px-2.5 py-0.5 text-xs text-slate-600 hover:bg-slate-50"
-                    onClick={() => setFilters({ ...deletionRangePreset(days), page: 0 })}
+                    onClick={() => patchDraft({ ...deletionRangePreset(days), page: 0 })}
                   >
                     Last {days}d
                   </button>
@@ -164,8 +174,8 @@ export default function DeletedAccountsPage() {
                 <Input
                   id="deleted-filter-deletion-start"
                   type="datetime-local"
-                  value={parsed.start}
-                  onChange={(event) => setFilters({ start: event.target.value, page: 0 })}
+                  value={draft.start}
+                  onChange={(event) => patchDraft({ start: event.target.value, page: 0 })}
                   aria-label="Deleted from"
                 />
               </label>
@@ -174,8 +184,8 @@ export default function DeletedAccountsPage() {
                 <Input
                   id="deleted-filter-deletion-end"
                   type="datetime-local"
-                  value={parsed.end}
-                  onChange={(event) => setFilters({ end: event.target.value, page: 0 })}
+                  value={draft.end}
+                  onChange={(event) => patchDraft({ end: event.target.value, page: 0 })}
                   aria-label="Deleted to"
                 />
               </label>
@@ -191,8 +201,8 @@ export default function DeletedAccountsPage() {
                 <Input
                   id="sales-filter-followup-start"
                   type="datetime-local"
-                  value={parsed.followUpStart}
-                  onChange={(event) => setFilters({ followUpStart: event.target.value, page: 0 })}
+                  value={draft.followUpStart}
+                  onChange={(event) => patchDraft({ followUpStart: event.target.value, page: 0 })}
                   aria-label="Follow-up from"
                 />
               </label>
@@ -201,8 +211,8 @@ export default function DeletedAccountsPage() {
                 <Input
                   id="sales-filter-followup-end"
                   type="datetime-local"
-                  value={parsed.followUpEnd}
-                  onChange={(event) => setFilters({ followUpEnd: event.target.value, page: 0 })}
+                  value={draft.followUpEnd}
+                  onChange={(event) => patchDraft({ followUpEnd: event.target.value, page: 0 })}
                   aria-label="Follow-up to"
                 />
               </label>
@@ -216,9 +226,9 @@ export default function DeletedAccountsPage() {
                 <span className="mb-1 block font-medium text-slate-800">Profile status</span>
                 <Select
                   id="sales-filter-profile-status"
-                  value={parsed.profileStatus}
+                  value={draft.profileStatus}
                   onChange={(event) => {
-                    setFilters({
+                    patchDraft({
                       profileStatus: event.target.value as DeletedAccountsListUrlState['profileStatus'],
                       page: 0,
                     })
@@ -236,8 +246,8 @@ export default function DeletedAccountsPage() {
                 <Input
                   id="sales-filter-gender"
                   placeholder="e.g. Male"
-                  value={parsed.gender}
-                  onChange={(event) => setFilters({ gender: event.target.value, page: 0 })}
+                  value={draft.gender}
+                  onChange={(event) => patchDraft({ gender: event.target.value, page: 0 })}
                   aria-label="Filter by gender exact match"
                 />
               </label>
@@ -249,15 +259,15 @@ export default function DeletedAccountsPage() {
                   inputMode="numeric"
                   autoComplete="off"
                   placeholder="e.g. 2000"
-                  value={parsed.birthYear}
-                  onChange={(event) => setFilters({ birthYear: event.target.value, page: 0 })}
+                  value={draft.birthYear}
+                  onChange={(event) => patchDraft({ birthYear: event.target.value, page: 0 })}
                   aria-label="Filter by maximum birth year"
                 />
-                {parsed.birthYear.trim() !== '' && birthYearForLeadsApi(parsed.birthYear) === undefined ? (
+                {draft.birthYear.trim() !== '' && birthYearForLeadsApi(draft.birthYear) === undefined ? (
                   <span className="mt-1 block text-xs text-amber-800">
                     Enter a whole year between 1900 and 2100 (digits only).
                   </span>
-                ) : parsed.birthYear.trim() !== '' ? (
+                ) : draft.birthYear.trim() !== '' ? (
                   <span className="mt-1 block text-xs text-slate-500">
                     Profiles born in this year or earlier (DOB ≤ YYYY-12-31).
                   </span>
@@ -267,8 +277,8 @@ export default function DeletedAccountsPage() {
                 <span className="mb-1 block font-medium text-slate-800">Marital status</span>
                 <Select
                   id="deleted-filter-marital-status"
-                  value={parsed.maritalStatus}
-                  onChange={(event) => setFilters({ maritalStatus: event.target.value, page: 0 })}
+                  value={draft.maritalStatus}
+                  onChange={(event) => patchDraft({ maritalStatus: event.target.value, page: 0 })}
                   aria-label="Filter by marital status"
                 >
                   <option value="">Any</option>
@@ -283,8 +293,8 @@ export default function DeletedAccountsPage() {
                 <span className="mb-1 block font-medium text-slate-800">Sect</span>
                 <Select
                   id="deleted-filter-sect"
-                  value={parsed.sect}
-                  onChange={(event) => setFilters({ sect: event.target.value, page: 0 })}
+                  value={draft.sect}
+                  onChange={(event) => patchDraft({ sect: event.target.value, page: 0 })}
                   aria-label="Filter by sect"
                 >
                   <option value="">Any</option>
@@ -301,18 +311,18 @@ export default function DeletedAccountsPage() {
                   id="deleted-filter-caste"
                   aria-label="Filter by caste"
                   options={SALES_CASTE_LABELS.map((label) => ({ value: label, label }))}
-                  value={parsed.caste}
+                  value={draft.caste}
                   placeholder="Search caste…"
                   emptyLabel="Any"
-                  onChange={(caste) => setFilters({ caste, page: 0 })}
+                  onChange={(caste) => patchDraft({ caste, page: 0 })}
                 />
               </label>
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Created for</span>
                 <Select
                   id="deleted-filter-profile-created-for"
-                  value={parsed.profileCreatedFor}
-                  onChange={(event) => setFilters({ profileCreatedFor: event.target.value, page: 0 })}
+                  value={draft.profileCreatedFor}
+                  onChange={(event) => patchDraft({ profileCreatedFor: event.target.value, page: 0 })}
                   aria-label="Filter by profile created for"
                 >
                   <option value="">Any</option>
@@ -327,8 +337,8 @@ export default function DeletedAccountsPage() {
                 <span className="mb-1 block font-medium text-slate-800">Bio</span>
                 <Select
                   id="deleted-filter-bio"
-                  value={parsed.bio}
-                  onChange={(event) => setFilters({ bio: event.target.value, page: 0 })}
+                  value={draft.bio}
+                  onChange={(event) => patchDraft({ bio: event.target.value, page: 0 })}
                   aria-label="Filter by bio availability"
                 >
                   <option value="">Any</option>
@@ -345,8 +355,8 @@ export default function DeletedAccountsPage() {
                   id="deleted-filter-education"
                   aria-label="Filter by education"
                   options={SALES_EDUCATION_LABELS.map((label) => ({ value: label, label }))}
-                  value={parsed.education}
-                  onChange={(education) => setFilters({ education, page: 0 })}
+                  value={draft.education}
+                  onChange={(education) => patchDraft({ education, page: 0 })}
                 />
               </label>
               <label className="block min-w-0 text-sm text-slate-600">
@@ -356,26 +366,26 @@ export default function DeletedAccountsPage() {
                   aria-label="Filter by profession"
                   searchable
                   options={SALES_PROFESSION_LABELS.map((label) => ({ value: label, label }))}
-                  value={parsed.profession}
-                  onChange={(profession) => setFilters({ profession, page: 0 })}
+                  value={draft.profession}
+                  onChange={(profession) => patchDraft({ profession, page: 0 })}
                 />
               </label>
               <GeoLocationFilters
                 idPrefix="deleted-filter"
                 value={{
-                  country: parsed.country,
-                  countryIso: parsed.countryIso,
-                  state: parsed.state,
-                  city: parsed.city,
+                  country: draft.country,
+                  countryIso: draft.countryIso,
+                  state: draft.state,
+                  city: draft.city,
                 }}
-                onChange={(patch) => setFilters({ ...patch, page: 0 })}
+                onChange={(patch) => patchDraft({ ...patch, page: 0 })}
               />
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Minimum income</span>
                 <Select
                   id="sales-filter-min-income"
-                  value={parsed.minIncomeBandId}
-                  onChange={(event) => setFilters({ minIncomeBandId: event.target.value, page: 0 })}
+                  value={draft.minIncomeBandId}
+                  onChange={(event) => patchDraft({ minIncomeBandId: event.target.value, page: 0 })}
                   aria-label="Filter by minimum income band"
                 >
                   <option value="">Any</option>
@@ -402,9 +412,9 @@ export default function DeletedAccountsPage() {
                 <span className="mb-1 block font-medium text-slate-800">Subscribed</span>
                 <Select
                   id="sales-filter-subscribed"
-                  value={parsed.subscribedTri}
+                  value={draft.subscribedTri}
                   onChange={(event) => {
-                    setFilters({
+                    patchDraft({
                       subscribedTri: event.target.value as DeletedAccountsListUrlState['subscribedTri'],
                       page: 0,
                     })
@@ -420,9 +430,9 @@ export default function DeletedAccountsPage() {
                 <span className="mb-1 block font-medium text-slate-800">Verified profile</span>
                 <Select
                   id="sales-filter-verified"
-                  value={parsed.verifiedTri}
+                  value={draft.verifiedTri}
                   onChange={(event) => {
-                    setFilters({
+                    patchDraft({
                       verifiedTri: event.target.value as DeletedAccountsListUrlState['verifiedTri'],
                       page: 0,
                     })
@@ -442,9 +452,9 @@ export default function DeletedAccountsPage() {
               <span className="mb-1 block font-medium text-slate-800">Sales status</span>
               <Select
                 id="sales-filter-status"
-                value={parsed.status}
+                value={draft.status}
                 onChange={(event) => {
-                  setFilters({
+                  patchDraft({
                     status: event.target.value as 'ALL' | AdminSalesStatus,
                     page: 0,
                   })
@@ -463,8 +473,8 @@ export default function DeletedAccountsPage() {
               <Input
                 id="sales-filter-search"
                 placeholder="User ID, member ID, phone, or name"
-                value={parsed.query}
-                onChange={(event) => setFilters({ query: event.target.value, page: 0 })}
+                value={draft.query}
+                onChange={(event) => patchDraft({ query: event.target.value, page: 0 })}
                 aria-label="Search leads"
               />
             </label>
@@ -472,9 +482,9 @@ export default function DeletedAccountsPage() {
               <span className="mb-1 block font-medium text-slate-800">Sort</span>
               <Select
                 id="sales-filter-sort"
-                value={parsed.sort}
+                value={draft.sort}
                 onChange={(event) => {
-                  setFilters({
+                  patchDraft({
                     sort: event.target.value as DeletedAccountsListUrlState['sort'],
                     page: 0,
                   })
@@ -490,12 +500,14 @@ export default function DeletedAccountsPage() {
               <Input
                 id="sales-filter-assigned"
                 placeholder="SALES001 or UNASSIGNED"
-                value={parsed.assignedToAdminId}
-                onChange={(event) => setFilters({ assignedToAdminId: event.target.value, page: 0 })}
+                value={draft.assignedToAdminId}
+                onChange={(event) => patchDraft({ assignedToAdminId: event.target.value, page: 0 })}
                 aria-label="Filter by assignee"
               />
             </label>
           </div>
+
+          <ListFiltersApplyBar dirty={isDirty} onApply={applyFilters} />
         </CardContent>
       </Card>
 

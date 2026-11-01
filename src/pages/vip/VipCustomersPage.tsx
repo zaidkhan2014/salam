@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { UserLink } from '@/components/common/UserLink'
 import { LeadPhotoThumb } from '@/components/sales/LeadPhotoThumb'
+import { ListFiltersApplyBar } from '@/components/sales/ListFiltersApplyBar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
@@ -12,6 +13,7 @@ import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { AdminSalesStatus, VipLeadSort } from '@/api/types'
 import { useAdminVipLeads } from '@/hooks/api/useAdminVip'
+import { useDeferredListFilters } from '@/hooks/useDeferredListFilters'
 import { cn } from '@/lib/cn'
 import { ADMIN_SALES_STATUS_FILTER_OPTIONS } from '@/pages/sales/salesConstants'
 import { SALES_CASTE_LABELS, SALES_SECT_LABELS } from '@/pages/sales/salesSectCaste'
@@ -51,6 +53,14 @@ export default function VipCustomersPage() {
     },
     [parsed, setSearchParams],
   )
+
+  const commitFilters = useCallback(
+    (next: VipListUrlState) => {
+      setSearchParams(toVipListSearchParams(next), { replace: true })
+    },
+    [setSearchParams],
+  )
+  const { draft, patchDraft, applyFilters, isDirty } = useDeferredListFilters(parsed, commitFilters)
 
   useEffect(() => {
     if (location.pathname !== routes.vip) return
@@ -129,7 +139,7 @@ export default function VipCustomersPage() {
                     key={days}
                     type="button"
                     className="rounded-full border border-slate-200 px-2.5 py-0.5 text-xs text-slate-600 hover:bg-slate-50"
-                    onClick={() => setFilters({ ...vipRequestedRangePreset(days), page: 0 })}
+                    onClick={() => patchDraft({ ...vipRequestedRangePreset(days), page: 0 })}
                   >
                     Last {days}d
                   </button>
@@ -142,8 +152,8 @@ export default function VipCustomersPage() {
                 <Input
                   id="vip-filter-requested-start"
                   type="datetime-local"
-                  value={parsed.start}
-                  onChange={(event) => setFilters({ start: event.target.value, page: 0 })}
+                  value={draft.start}
+                  onChange={(event) => patchDraft({ start: event.target.value, page: 0 })}
                   aria-label="Last requested from"
                 />
               </label>
@@ -152,8 +162,8 @@ export default function VipCustomersPage() {
                 <Input
                   id="vip-filter-requested-end"
                   type="datetime-local"
-                  value={parsed.end}
-                  onChange={(event) => setFilters({ end: event.target.value, page: 0 })}
+                  value={draft.end}
+                  onChange={(event) => patchDraft({ end: event.target.value, page: 0 })}
                   aria-label="Last requested to"
                 />
               </label>
@@ -169,8 +179,8 @@ export default function VipCustomersPage() {
                 <Input
                   id="vip-filter-followup-start"
                   type="datetime-local"
-                  value={parsed.followUpStart}
-                  onChange={(event) => setFilters({ followUpStart: event.target.value, page: 0 })}
+                  value={draft.followUpStart}
+                  onChange={(event) => patchDraft({ followUpStart: event.target.value, page: 0 })}
                   aria-label="Follow-up from"
                 />
               </label>
@@ -179,8 +189,8 @@ export default function VipCustomersPage() {
                 <Input
                   id="vip-filter-followup-end"
                   type="datetime-local"
-                  value={parsed.followUpEnd}
-                  onChange={(event) => setFilters({ followUpEnd: event.target.value, page: 0 })}
+                  value={draft.followUpEnd}
+                  onChange={(event) => patchDraft({ followUpEnd: event.target.value, page: 0 })}
                   aria-label="Follow-up to"
                 />
               </label>
@@ -192,9 +202,9 @@ export default function VipCustomersPage() {
               <span className="mb-1 block font-medium text-slate-800">Status</span>
               <Select
                 id="vip-filter-status"
-                value={parsed.status}
+                value={draft.status}
                 onChange={(event) => {
-                  setFilters({
+                  patchDraft({
                     status: event.target.value as 'ALL' | AdminSalesStatus,
                     page: 0,
                   })
@@ -213,8 +223,8 @@ export default function VipCustomersPage() {
               <Input
                 id="vip-filter-search"
                 placeholder="User ID, VIP title, member ID, phone, or name"
-                value={parsed.query}
-                onChange={(event) => setFilters({ query: event.target.value, page: 0 })}
+                value={draft.query}
+                onChange={(event) => patchDraft({ query: event.target.value, page: 0 })}
                 aria-label="Search VIP leads"
               />
             </label>
@@ -222,8 +232,8 @@ export default function VipCustomersPage() {
               <span className="mb-1 block font-medium text-slate-800">Sect</span>
               <Select
                 id="vip-filter-sect"
-                value={parsed.sect}
-                onChange={(event) => setFilters({ sect: event.target.value, page: 0 })}
+                value={draft.sect}
+                onChange={(event) => patchDraft({ sect: event.target.value, page: 0 })}
                 aria-label="Filter by sect"
               >
                 <option value="">Any</option>
@@ -240,19 +250,19 @@ export default function VipCustomersPage() {
                 id="vip-filter-caste"
                 aria-label="Filter by caste"
                 options={SALES_CASTE_LABELS.map((label) => ({ value: label, label }))}
-                value={parsed.caste}
+                value={draft.caste}
                 placeholder="Search caste…"
                 emptyLabel="Any"
-                onChange={(caste) => setFilters({ caste, page: 0 })}
+                onChange={(caste) => patchDraft({ caste, page: 0 })}
               />
             </label>
             <label className="block min-w-0 text-sm text-slate-600">
               <span className="mb-1 block font-medium text-slate-800">Sort</span>
               <Select
                 id="vip-filter-sort"
-                value={parsed.sort}
+                value={draft.sort}
                 onChange={(event) => {
-                  setFilters({
+                  patchDraft({
                     sort: event.target.value as '' | VipLeadSort,
                     page: 0,
                   })
@@ -271,12 +281,14 @@ export default function VipCustomersPage() {
               <Input
                 id="vip-filter-assigned"
                 placeholder="SALES001"
-                value={parsed.assignedToAdminId}
-                onChange={(event) => setFilters({ assignedToAdminId: event.target.value, page: 0 })}
+                value={draft.assignedToAdminId}
+                onChange={(event) => patchDraft({ assignedToAdminId: event.target.value, page: 0 })}
                 aria-label="Filter by assignee"
               />
             </label>
           </div>
+
+          <ListFiltersApplyBar dirty={isDirty} onApply={applyFilters} />
         </CardContent>
       </Card>
 

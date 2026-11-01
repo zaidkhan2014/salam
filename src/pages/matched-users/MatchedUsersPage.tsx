@@ -6,11 +6,13 @@ import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { UserLink } from '@/components/common/UserLink'
 import { BioCell } from '@/components/sales/BioCell'
 import { LeadPhotoThumb } from '@/components/sales/LeadPhotoThumb'
+import { ListFiltersApplyBar } from '@/components/sales/ListFiltersApplyBar'
 import { Alert } from '@/components/ui/alert'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAdminMatchedSalesLeads } from '@/hooks/api/useAdminMatchedSales'
+import { useDeferredListFilters } from '@/hooks/useDeferredListFilters'
 import { cn } from '@/lib/cn'
 import {
   matchedRangePreset,
@@ -36,6 +38,14 @@ export default function MatchedUsersPage() {
     },
     [parsed, setSearchParams],
   )
+
+  const commitFilters = useCallback(
+    (next: MatchedUsersListUrlState) => {
+      setSearchParams(toMatchedUsersListSearchParams(next), { replace: true })
+    },
+    [setSearchParams],
+  )
+  const { draft, patchDraft, applyFilters, isDirty } = useDeferredListFilters(parsed, commitFilters)
 
   const rangeError = matchedUsersRangeError(parsed.start, parsed.end)
   const queryEnabled = !rangeError
@@ -74,7 +84,7 @@ export default function MatchedUsersPage() {
             )}
             onClick={() => {
               const range = matchedRangePreset(preset.days)
-              setFilters({ ...range, page: 0 })
+              patchDraft({ ...range, page: 0 })
             }}
           >
             {preset.label}
@@ -88,8 +98,8 @@ export default function MatchedUsersPage() {
             <span className="mb-1 block font-medium text-slate-800">Matched from</span>
             <Input
               type="datetime-local"
-              value={parsed.start}
-              onChange={(event) => setFilters({ start: event.target.value, page: 0 })}
+              value={draft.start}
+              onChange={(event) => patchDraft({ start: event.target.value, page: 0 })}
               aria-label="Matched from"
             />
           </label>
@@ -97,11 +107,14 @@ export default function MatchedUsersPage() {
             <span className="mb-1 block font-medium text-slate-800">Matched to</span>
             <Input
               type="datetime-local"
-              value={parsed.end}
-              onChange={(event) => setFilters({ end: event.target.value, page: 0 })}
+              value={draft.end}
+              onChange={(event) => patchDraft({ end: event.target.value, page: 0 })}
               aria-label="Matched to"
             />
           </label>
+          <div className="md:col-span-2">
+            <ListFiltersApplyBar dirty={isDirty} onApply={applyFilters} />
+          </div>
         </CardContent>
       </Card>
 
