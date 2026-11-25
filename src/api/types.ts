@@ -68,6 +68,31 @@ export interface AdminMetricsResponse {
   metrics: AdminMetricCard[]
 }
 
+/** Store IAP series point from RevenueCat (`/analytics/subscription-revenue-breakdown`). */
+export interface AdminSubscriptionRevenuePoint {
+  bucket: string
+  newSubscriptions: number
+  renewals: number
+  grossRevenue: number
+  netRevenue: number
+}
+
+/** Store IAP new vs renewal breakdown (RevenueCat); money is INR-only. */
+export interface AdminSubscriptionRevenueBreakdownResponse {
+  start: IsoInstant
+  end: IsoInstant
+  granularity: Granularity
+  currency: string
+  storeCommissionRate: number
+  newSubscriptionCount: number
+  renewalCount: number
+  totalPaidEvents: number
+  grossRevenue: number
+  storeCommission: number
+  netRevenue: number
+  series: AdminSubscriptionRevenuePoint[]
+}
+
 export interface GenderSnapshot {
   total: number
   male: number

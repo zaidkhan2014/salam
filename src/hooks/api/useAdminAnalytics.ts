@@ -12,6 +12,7 @@ import type {
   AdminMetricsResponse,
   AdminOnboardingDropoffWithMediaResponse,
   AdminOtpUnverifiedResponse,
+  AdminSubscriptionRevenueBreakdownResponse,
   AnalyticsFilters,
   DayGenderCountsFilters,
   GenderMonitoringFilters,
@@ -57,6 +58,23 @@ export function useRevenueMetrics(filters: AnalyticsFilters) {
         params: cleanQueryParams(filters),
         timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
       })
+      return response.data
+    },
+  })
+}
+
+/** Store IAP new vs renewal breakdown from RevenueCat. */
+export function useSubscriptionRevenueBreakdown(filters: AnalyticsFilters) {
+  return useQuery({
+    queryKey: ['analytics', 'subscription-revenue-breakdown', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminSubscriptionRevenueBreakdownResponse>(
+        adminEndpoints.analytics.subscriptionRevenueBreakdown,
+        {
+          params: cleanQueryParams(filters),
+          timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
+        },
+      )
       return response.data
     },
   })

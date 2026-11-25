@@ -8,6 +8,7 @@ export const adminEndpoints = {
     overview: `${ADMIN_API_BASE}/analytics/overview`,
     funnel: `${ADMIN_API_BASE}/analytics/funnel`,
     revenue: `${ADMIN_API_BASE}/analytics/revenue`,
+    subscriptionRevenueBreakdown: `${ADMIN_API_BASE}/analytics/subscription-revenue-breakdown`,
     matching: `${ADMIN_API_BASE}/analytics/matching`,
     chat: `${ADMIN_API_BASE}/analytics/chat`,
     safety: `${ADMIN_API_BASE}/analytics/safety`,

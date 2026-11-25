@@ -533,6 +533,20 @@ All analytics endpoints are `GET` and require bearer token.
 - **Params:** `start`, `end`, `granularity`
 - **Response:** `AdminMetricsResponse`
 - **Typical metric keys:** `subscription_purchases`, `revenue_inr`
+- **Source:** `subscription_payments` (Razorpay / bank-style SUCCESS rows). Does **not** split new vs renewal store IAPs.
+
+#### C2) Subscription revenue breakdown (store IAP)
+
+- **URL:** `/analytics/subscription-revenue-breakdown`
+- **Params:** `start`, `end`, `granularity` (`daily` | `weekly` | `monthly`)
+- **Response:** `AdminSubscriptionRevenueBreakdownResponse`
+- **Source:** Mongo `revenuecat_event_log`
+- **Included events:** `type` in `INITIAL_PURCHASE`, `RENEWAL`; `status` null (legacy) or `APPLIED`; `environment` null or not `SANDBOX`
+- **Date field:** `purchasedAt`, else `eventTimestamp`, else `receivedAt` (window `[start, end)`)
+- **Money:** RevenueCat `priceInPurchasedCurrency` summed as **INR** (`currency: "INR"`) only when event `currency` is `INR` (case-insensitive). Non-INR purchases still count in new/renewal totals but contribute `0` to revenue. Missing/null amount treated as `0`. No USD→INR FX conversion.
+- **Commission:** flat `storeCommissionRate = 0.15` → `storeCommission = gross * 0.15`, `netRevenue = gross * 0.85`
+- **Totals:** `newSubscriptionCount`, `renewalCount`, `totalPaidEvents`, `grossRevenue`, `storeCommission`, `netRevenue`
+- **Series point:** `{ bucket, newSubscriptions, renewals, grossRevenue, netRevenue }` (empty buckets filled with zeros)
 
 ### D) Matching
 
@@ -1006,8 +1020,8 @@ Requires staff-management permission (`SUPER_ADMIN`, `SALES_MANAGER`, or bootstr
 
 ## 4.4 Revenue Page
 
-- Use `revenue`
-- Show purchases, revenue total, plan breakdown pie/table
+- Use `revenue` for Razorpay / payments metrics (purchases, revenue total, plan breakdown)
+- Use `subscription-revenue-breakdown` for Store IAP (RevenueCat): KPI cards + new vs renewal stacked bars + gross/net INR trend
 
 ## 4.5 Matching/Chat/Safety Pages
 
