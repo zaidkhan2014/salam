@@ -148,12 +148,60 @@ export interface AdminDayGenderCountsResponse {
   totalCount: number
 }
 
-/** Deleted-approved-by-day: shared gender counts plus same-day create+delete subset. */
+/** Deleted-approved-by-day: gender + platform counts plus same-day create+delete subset. */
 export interface AdminDeletedApprovedByDayResponse extends AdminDayGenderCountsResponse {
+  iosCount: number
+  androidCount: number
+  unknownPlatformCount: number
   sameDayCreatedDeletedMaleCount: number
   sameDayCreatedDeletedFemaleCount: number
   sameDayCreatedDeletedUnknownCount: number
   sameDayCreatedDeletedTotalCount: number
+}
+
+export interface AdminPlanHolderItem {
+  planId: string
+  planName: string
+  tierCode: string | null
+  billingPeriod: string | null
+  count: number
+  sharePercent: number
+}
+
+export interface AdminPlanHoldersResponse {
+  start: IsoInstant | null
+  end: IsoInstant | null
+  source: string
+  totalUsers: number
+  plans: AdminPlanHolderItem[]
+}
+
+export interface AdminPlanPaidEventsItem {
+  planId: string
+  planName: string
+  tierCode: string | null
+  billingPeriod: string | null
+  initialPurchaseCount: number
+  renewalCount: number
+  totalPaidEvents: number
+  initialSharePercent: number
+  renewalSharePercent: number
+}
+
+export interface AdminPlanPaidEventsResponse {
+  start: IsoInstant
+  end: IsoInstant
+  source: string
+  totalInitialPurchases: number
+  totalRenewals: number
+  totalPaidEvents: number
+  plans: AdminPlanPaidEventsItem[]
+}
+
+/** Optional date window for plan popularity endpoints (omit both = backend defaults). */
+export interface PlanPopularityFilters {
+  start?: IsoInstant
+  end?: IsoInstant
 }
 
 export interface DayGenderCountsFilters {

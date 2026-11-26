@@ -24,6 +24,13 @@ describe('adminEndpoints', () => {
     )
     expect(adminEndpoints.analytics.onboardedByDay).toBe('/api/admin/analytics/onboarded-by-day')
     expect(adminEndpoints.analytics.likes).toBe('/api/admin/analytics/likes')
+    expect(adminEndpoints.analytics.subscriptionRevenueBreakdown).toBe(
+      '/api/admin/analytics/subscription-revenue-breakdown',
+    )
+    expect(adminEndpoints.analytics.planHoldersByPlan).toBe('/api/admin/analytics/plan-holders-by-plan')
+    expect(adminEndpoints.analytics.planPaidEventsByPlan).toBe(
+      '/api/admin/analytics/plan-paid-events-by-plan',
+    )
   })
 
   it('exposes geo endpoints', () => {

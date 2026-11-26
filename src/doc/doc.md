@@ -517,7 +517,9 @@ All analytics endpoints are `GET` and require bearer token.
 - **URL:** `/analytics/overview`
 - **Params:** `start`, `end`, `granularity`
 - **Response:** `AdminMetricsResponse`
-- **Typical metric keys:** `otp_verified`, `onboarding_completed`, `onboarding_dropoff`, `paid_users`, `matches`, `active_users`, `reports`, `interactions`, `unique_interaction_initiators`, `chat_messages`, `chat_initiated`, `photo_uploads`, `account_deleted`, `deleted_gender_ratio`, `profile_rejected`, `bio_moderation_rejected`, `selfie_verification_rate`, `like_limit_reached`
+- **Typical metric keys:** `otp_verified`, `onboarding_completed`, `onboarding_completed_approved`, `onboarding_dropoff`, `paid_users`, `matches`, `active_users`, `reports`, `interactions`, `unique_interaction_initiators`, `chat_messages`, `chat_initiated`, `photo_uploads`, `account_deleted`, `deleted_gender_ratio`, `profile_rejected`, `bio_moderation_rejected`, `selfie_verification_rate`, `like_limit_reached`
+- **`onboarding_completed`:** `total` + `series` on `onboardingCompletedAt` in `[start, end)`; **`breakdown`** = platform counts from `auth_info.lastPlatform` (`IOS` / `ANDROID` / `UNKNOWN`) for that cohort
+- **`onboarding_completed_approved`:** same date window + `onboardingComplete=true` + `profileStatus=APPROVED` (includes deleted accounts); same platform **`breakdown`**. Series is total-only (not split by platform)
 
 ### B) Funnel
 
@@ -526,6 +528,7 @@ All analytics endpoints are `GET` and require bearer token.
 - **Response:** `AdminMetricsResponse`
 - **Typical metric keys:** `otp_requested`, `otp_verified`, `onboarding_completed`, `onboarding_dropoff`
 - **`otp_requested`:** Counts `auth_info` rows whose **`lastOtpRequestedAt`** falls in `[start, end)` (most recent OTP **request** time; **not** cleared on successful verify). Same field as `/analytics/otp` `otp_requested`.
+- **`onboarding_completed`:** same as overview (includes platform `breakdown`); funnel does **not** include `onboarding_completed_approved`
 
 ### C) Revenue
 
@@ -547,6 +550,26 @@ All analytics endpoints are `GET` and require bearer token.
 - **Commission:** flat `storeCommissionRate = 0.15` → `storeCommission = gross * 0.15`, `netRevenue = gross * 0.85`
 - **Totals:** `newSubscriptionCount`, `renewalCount`, `totalPaidEvents`, `grossRevenue`, `storeCommission`, `netRevenue`
 - **Series point:** `{ bucket, newSubscriptions, renewals, grossRevenue, netRevenue }` (empty buckets filled with zeros)
+
+#### C3) Plan popularity — holders vs paid events
+
+Two complementary endpoints. Do **not** sum them together (different units / cohorts).
+
+**Holders — “which plan do users sit on (incl. legacy)?”**
+
+- **URL:** `/analytics/plan-holders-by-plan`
+- **Params:** `start`, `end` (optional). When **both omitted**, all-time. When either provided, filter `user_subscriptions.startAt` in `[start, end)`.
+- **Response:** `AdminPlanHoldersResponse`
+- **Shape:** `{ start, end, source: "USER_SUBSCRIPTIONS", totalUsers, plans: [{ planId, planName, tierCode, billingPeriod, count, sharePercent }] }`
+
+**Paid events — “new buys vs renewals by plan”**
+
+- **URL:** `/analytics/plan-paid-events-by-plan`
+- **Params:** `start`, `end` (optional; default **last 7 days**)
+- **Response:** `AdminPlanPaidEventsResponse`
+- **Source:** Mongo `revenuecat_event_log` (PRODUCTION only)
+- **Shape:** `{ start, end, source: "REVENUECAT_PAID_EVENTS", totalInitialPurchases, totalRenewals, totalPaidEvents, plans: [{ planId, planName, tierCode, billingPeriod, initialPurchaseCount, renewalCount, totalPaidEvents, initialSharePercent, renewalSharePercent }] }`
+- **Client charts:** use `initialPurchaseCount` for acquisition and `renewalCount` for retention; do **not** treat `totalPaidEvents` alone as “most popular plan”
 
 ### D) Matching
 
@@ -1022,6 +1045,7 @@ Requires staff-management permission (`SUPER_ADMIN`, `SALES_MANAGER`, or bootstr
 
 - Use `revenue` for Razorpay / payments metrics (purchases, revenue total, plan breakdown)
 - Use `subscription-revenue-breakdown` for Store IAP (RevenueCat): KPI cards + new vs renewal stacked bars + gross/net INR trend
+- Use `plan-holders-by-plan` + `plan-paid-events-by-plan` for plan popularity (do not sum; different units)
 
 ## 4.5 Matching/Chat/Safety Pages
 

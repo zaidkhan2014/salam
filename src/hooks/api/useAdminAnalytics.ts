@@ -12,12 +12,15 @@ import type {
   AdminMetricsResponse,
   AdminOnboardingDropoffWithMediaResponse,
   AdminOtpUnverifiedResponse,
+  AdminPlanHoldersResponse,
+  AdminPlanPaidEventsResponse,
   AdminSubscriptionRevenueBreakdownResponse,
   AnalyticsFilters,
   DayGenderCountsFilters,
   GenderMonitoringFilters,
   OnboardingDropoffFilters,
   OtpUnverifiedFilters,
+  PlanPopularityFilters,
   RetentionFilters,
 } from '@/api/types'
 
@@ -70,6 +73,40 @@ export function useSubscriptionRevenueBreakdown(filters: AnalyticsFilters) {
     queryFn: async () => {
       const response = await adminClient.get<AdminSubscriptionRevenueBreakdownResponse>(
         adminEndpoints.analytics.subscriptionRevenueBreakdown,
+        {
+          params: cleanQueryParams(filters),
+          timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
+        },
+      )
+      return response.data
+    },
+  })
+}
+
+/** Current plan holders by plan (user_subscriptions). Omit start/end for all-time. */
+export function usePlanHoldersByPlan(filters: PlanPopularityFilters) {
+  return useQuery({
+    queryKey: ['analytics', 'plan-holders-by-plan', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminPlanHoldersResponse>(
+        adminEndpoints.analytics.planHoldersByPlan,
+        {
+          params: cleanQueryParams(filters),
+          timeout: ANALYTICS_REQUEST_TIMEOUT_MS,
+        },
+      )
+      return response.data
+    },
+  })
+}
+
+/** PRODUCTION INITIAL_PURCHASE vs RENEWAL counts by plan. Omit start/end for last 7 days. */
+export function usePlanPaidEventsByPlan(filters: PlanPopularityFilters) {
+  return useQuery({
+    queryKey: ['analytics', 'plan-paid-events-by-plan', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminPlanPaidEventsResponse>(
+        adminEndpoints.analytics.planPaidEventsByPlan,
         {
           params: cleanQueryParams(filters),
           timeout: ANALYTICS_REQUEST_TIMEOUT_MS,

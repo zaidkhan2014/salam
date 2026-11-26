@@ -1,15 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { formatMetricTitle } from '@/utils/metricLabels'
+import { formatBreakdownKey, formatMetricTitle, isPlatformBreakdown } from '@/utils/metricLabels'
 
-describe('formatMetricTitle', () => {
-  it('uses OTP acronym overrides', () => {
-    expect(formatMetricTitle('otp_requested')).toBe('OTP requested')
-    expect(formatMetricTitle('otp_success')).toBe('OTP success')
-    expect(formatMetricTitle('otp_failed')).toBe('OTP failed')
+describe('metricLabels', () => {
+  it('overrides onboarding_completed_approved title', () => {
+    expect(formatMetricTitle('onboarding_completed_approved')).toBe('Onboarding completed (approved)')
   })
 
-  it('title-cases unknown snake_case keys', () => {
-    expect(formatMetricTitle('mongo_profile_count')).toBe('Mongo Profile Count')
-    expect(formatMetricTitle('active_users')).toBe('Active Users')
+  it('formats platform breakdown keys', () => {
+    expect(formatBreakdownKey('IOS')).toBe('iOS')
+    expect(formatBreakdownKey('ANDROID')).toBe('Android')
+    expect(formatBreakdownKey('UNKNOWN')).toBe('Unknown')
+    expect(formatBreakdownKey('OTHER')).toBe('OTHER')
+  })
+
+  it('detects platform-only breakdowns', () => {
+    expect(isPlatformBreakdown(['IOS', 'ANDROID', 'UNKNOWN'])).toBe(true)
+    expect(isPlatformBreakdown(['IOS', 'plan_a'])).toBe(false)
+    expect(isPlatformBreakdown([])).toBe(false)
   })
 })

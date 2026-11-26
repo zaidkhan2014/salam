@@ -138,6 +138,20 @@ function DeletedApprovedPanel({
             </div>
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Platform (last login OS)
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <CountCard label="iOS" value={query.data.iosCount} />
+                <CountCard label="Android" value={query.data.androidCount} />
+                <CountCard label="Unknown platform" value={query.data.unknownPlatformCount} />
+                <CountCard
+                  label="Platform sum"
+                  value={query.data.iosCount + query.data.androidCount + query.data.unknownPlatformCount}
+                />
+              </div>
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Same-day created & deleted
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
