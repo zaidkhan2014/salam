@@ -6,6 +6,14 @@ describe('metricLabels', () => {
     expect(formatMetricTitle('onboarding_completed_approved')).toBe('Onboarding completed (approved)')
   })
 
+  it('overrides platform onboarding series titles', () => {
+    expect(formatMetricTitle('onboarding_completed_ios')).toBe('Onboarding completed (iOS)')
+    expect(formatMetricTitle('onboarding_completed_android')).toBe('Onboarding completed (Android)')
+    expect(formatMetricTitle('onboarding_completed_approved_ios')).toBe(
+      'Onboarding completed approved (iOS)',
+    )
+  })
+
   it('formats platform breakdown keys', () => {
     expect(formatBreakdownKey('IOS')).toBe('iOS')
     expect(formatBreakdownKey('ANDROID')).toBe('Android')

@@ -3,6 +3,12 @@ const METRIC_TITLE_OVERRIDES: Record<string, string> = {
   otp_success: 'OTP success',
   otp_failed: 'OTP failed',
   onboarding_completed_approved: 'Onboarding completed (approved)',
+  onboarding_completed_ios: 'Onboarding completed (iOS)',
+  onboarding_completed_android: 'Onboarding completed (Android)',
+  onboarding_completed_unknown: 'Onboarding completed (Unknown platform)',
+  onboarding_completed_approved_ios: 'Onboarding completed approved (iOS)',
+  onboarding_completed_approved_android: 'Onboarding completed approved (Android)',
+  onboarding_completed_approved_unknown: 'Onboarding completed approved (Unknown platform)',
 }
 
 const BREAKDOWN_KEY_OVERRIDES: Record<string, string> = {

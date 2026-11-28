@@ -547,8 +547,10 @@ All analytics endpoints are `GET` and require bearer token.
 - **Included events:** `type` in `INITIAL_PURCHASE`, `RENEWAL`; `status` null (legacy) or `APPLIED`; `environment` null or not `SANDBOX`
 - **Date field:** `purchasedAt`, else `eventTimestamp`, else `receivedAt` (window `[start, end)`)
 - **Money:** RevenueCat `priceInPurchasedCurrency` summed as **INR** (`currency: "INR"`) only when event `currency` is `INR` (case-insensitive). Non-INR purchases still count in new/renewal totals but contribute `0` to revenue. Missing/null amount treated as `0`. No USD→INR FX conversion.
-- **Commission:** flat `storeCommissionRate = 0.15` → `storeCommission = gross * 0.15`, `netRevenue = gross * 0.85`
+- **Commission (flat 15% on gross):** `storeCommissionRate = 0.15` → `storeCommission = gross * 0.15`, `netRevenue = gross * 0.85`. Same on `ios*` / `android*` / `unknownStore*` flat fields.
+- **GST-aware partner math (summary only):** `gstRate = 0.18`. iOS: `iosAmountExGst = iosGross / 1.18`, `iosAppleCommission = iosAmountExGst * 0.15`, `iosPartnerNetRevenue = iosAmountExGst * 0.85`. Android: `androidAmountExGst = androidGross / 1.18` (no Play commission in partner total). Combined: `partnerNetTotal = iosPartnerNetRevenue + androidAmountExGst`.
 - **Totals:** `newSubscriptionCount`, `renewalCount`, `totalPaidEvents`, `grossRevenue`, `storeCommission`, `netRevenue`
+- **By store (summary only):** `iosGrossRevenue` / `iosNetRevenue` (`APP_STORE`) plus GST-aware iOS fields; `androidGrossRevenue` / `androidNetRevenue` (`PLAY_STORE`) plus `androidAmountExGst`; plus `unknownStore*` for null/other. Series is not split by store (flat 15% net).
 - **Series point:** `{ bucket, newSubscriptions, renewals, grossRevenue, netRevenue }` (empty buckets filled with zeros)
 
 #### C3) Plan popularity — holders vs paid events

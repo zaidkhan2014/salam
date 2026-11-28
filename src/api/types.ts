@@ -84,12 +84,32 @@ export interface AdminSubscriptionRevenueBreakdownResponse {
   granularity: Granularity
   currency: string
   storeCommissionRate: number
+  gstRate: number
   newSubscriptionCount: number
   renewalCount: number
   totalPaidEvents: number
   grossRevenue: number
   storeCommission: number
   netRevenue: number
+  iosGrossRevenue: number
+  iosStoreCommission: number
+  iosNetRevenue: number
+  androidGrossRevenue: number
+  androidStoreCommission: number
+  androidNetRevenue: number
+  unknownStoreGrossRevenue: number
+  unknownStoreCommission: number
+  unknownStoreNetRevenue: number
+  /** GST-aware: iosGross / 1.18 */
+  iosAmountExGst: number
+  /** GST-aware: iosAmountExGst * 0.15 */
+  iosAppleCommission: number
+  /** GST-aware: iosAmountExGst * 0.85 */
+  iosPartnerNetRevenue: number
+  /** GST-only: androidGross / 1.18 (no Play commission in partner total) */
+  androidAmountExGst: number
+  /** iosPartnerNetRevenue + androidAmountExGst */
+  partnerNetTotal: number
   series: AdminSubscriptionRevenuePoint[]
 }
 
@@ -159,21 +179,38 @@ export interface AdminDeletedApprovedByDayResponse extends AdminDayGenderCountsR
   sameDayCreatedDeletedTotalCount: number
 }
 
+export interface AdminPlanHolderSeriesPoint {
+  bucket: string
+  count: number
+}
+
 export interface AdminPlanHolderItem {
   planId: string
   planName: string
   tierCode: string | null
   billingPeriod: string | null
+  iosProductId: string | null
+  androidProductId: string | null
+  productId: string | null
   count: number
   sharePercent: number
+  series: AdminPlanHolderSeriesPoint[]
 }
 
 export interface AdminPlanHoldersResponse {
   start: IsoInstant | null
   end: IsoInstant | null
+  granularity: Granularity
   source: string
   totalUsers: number
   plans: AdminPlanHolderItem[]
+}
+
+export interface AdminPlanPaidEventsSeriesPoint {
+  bucket: string
+  initialPurchaseCount: number
+  renewalCount: number
+  totalPaidEvents: number
 }
 
 export interface AdminPlanPaidEventsItem {
@@ -181,16 +218,21 @@ export interface AdminPlanPaidEventsItem {
   planName: string
   tierCode: string | null
   billingPeriod: string | null
+  iosProductId: string | null
+  androidProductId: string | null
+  productId: string | null
   initialPurchaseCount: number
   renewalCount: number
   totalPaidEvents: number
   initialSharePercent: number
   renewalSharePercent: number
+  series: AdminPlanPaidEventsSeriesPoint[]
 }
 
 export interface AdminPlanPaidEventsResponse {
   start: IsoInstant
   end: IsoInstant
+  granularity: Granularity
   source: string
   totalInitialPurchases: number
   totalRenewals: number
@@ -198,10 +240,11 @@ export interface AdminPlanPaidEventsResponse {
   plans: AdminPlanPaidEventsItem[]
 }
 
-/** Optional date window for plan popularity endpoints (omit both = backend defaults). */
+/** Date window + granularity for plan popularity endpoints. */
 export interface PlanPopularityFilters {
   start?: IsoInstant
   end?: IsoInstant
+  granularity?: GranularityInput
 }
 
 export interface DayGenderCountsFilters {

@@ -17,8 +17,8 @@ export default function RevenuePage() {
   const query = useRevenueMetrics(filters)
   const storeIapQuery = useSubscriptionRevenueBreakdown(filters)
   const planFilters = useMemo(
-    () => ({ start: filters.start, end: filters.end }),
-    [filters.start, filters.end],
+    () => ({ start: filters.start, end: filters.end, granularity: filters.granularity }),
+    [filters.start, filters.end, filters.granularity],
   )
   const holdersQuery = usePlanHoldersByPlan(planFilters)
   const paidEventsQuery = usePlanPaidEventsByPlan(planFilters)

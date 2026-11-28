@@ -10,50 +10,111 @@ interface SubscriptionRevenueSummaryCardsProps {
   data: AdminSubscriptionRevenueBreakdownResponse
 }
 
-const cards: Array<{
+const volumeCards: Array<{
   key: keyof Pick<
     AdminSubscriptionRevenueBreakdownResponse,
-    | 'newSubscriptionCount'
-    | 'renewalCount'
-    | 'totalPaidEvents'
-    | 'grossRevenue'
-    | 'storeCommission'
-    | 'netRevenue'
+    'newSubscriptionCount' | 'renewalCount' | 'totalPaidEvents'
   >
   title: string
-  money?: boolean
 }> = [
   { key: 'newSubscriptionCount', title: 'New subscriptions' },
   { key: 'renewalCount', title: 'Renewals' },
   { key: 'totalPaidEvents', title: 'Paid events' },
-  { key: 'grossRevenue', title: 'Gross revenue', money: true },
-  { key: 'storeCommission', title: 'Store commission', money: true },
-  { key: 'netRevenue', title: 'Net revenue', money: true },
+]
+
+const moneyCards: Array<{
+  key: keyof Pick<
+    AdminSubscriptionRevenueBreakdownResponse,
+    | 'grossRevenue'
+    | 'storeCommission'
+    | 'netRevenue'
+    | 'iosGrossRevenue'
+    | 'iosNetRevenue'
+    | 'androidGrossRevenue'
+    | 'androidNetRevenue'
+  >
+  title: string
+}> = [
+  { key: 'grossRevenue', title: 'Gross revenue' },
+  { key: 'storeCommission', title: 'Store commission' },
+  { key: 'netRevenue', title: 'Net revenue' },
+  { key: 'iosGrossRevenue', title: 'iOS gross' },
+  { key: 'iosNetRevenue', title: 'iOS net (flat 15%)' },
+  { key: 'androidGrossRevenue', title: 'Android gross' },
+  { key: 'androidNetRevenue', title: 'Android net (flat 15%)' },
+]
+
+const partnerCards: Array<{
+  key: keyof Pick<
+    AdminSubscriptionRevenueBreakdownResponse,
+    | 'iosPartnerNetRevenue'
+    | 'iosAmountExGst'
+    | 'iosAppleCommission'
+    | 'androidAmountExGst'
+    | 'partnerNetTotal'
+  >
+  title: string
+}> = [
+  { key: 'iosPartnerNetRevenue', title: 'iOS partner net' },
+  { key: 'iosAmountExGst', title: 'iOS amount ex-GST' },
+  { key: 'iosAppleCommission', title: 'Apple commission' },
+  { key: 'androidAmountExGst', title: 'Android ex-GST' },
+  { key: 'partnerNetTotal', title: 'Partner net total' },
 ]
 
 export function SubscriptionRevenueSummaryCards({ data }: SubscriptionRevenueSummaryCardsProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <p className="text-xs text-slate-500">
-        Currency {data.currency} · store commission {formatCommissionRate(data.storeCommissionRate)}
+        Currency {data.currency} · store commission {formatCommissionRate(data.storeCommissionRate)} ·
+        GST {formatCommissionRate(data.gstRate)} · iOS = App Store, Android = Play Store
       </p>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {cards.map((card) => {
-          const value = data[card.key]
-          return (
-            <Card key={card.key}>
-              <CardHeader>
-                <CardTitle>{card.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold text-slate-900">
-                  {card.money ? formatInr(value) : formatCompactNumber(value)}
-                </p>
-              </CardContent>
-            </Card>
-          )
-        })}
+        {volumeCards.map((card) => (
+          <Card key={card.key}>
+            <CardHeader>
+              <CardTitle>{card.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-semibold text-slate-900">
+                {formatCompactNumber(data[card.key])}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+        {moneyCards.map((card) => (
+          <Card key={card.key}>
+            <CardHeader>
+              <CardTitle>{card.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-semibold text-slate-900">{formatInr(data[card.key])}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {partnerCards.map((card) => (
+          <Card key={card.key}>
+            <CardHeader>
+              <CardTitle>{card.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-semibold text-slate-900">{formatInr(data[card.key])}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <p className="text-xs text-slate-500">
+        Partner math: iOS = gross ÷ 1.18 × 0.85 (GST out, then Apple 15%); Play = gross ÷ 1.18 only
+        (GST out, no store commission in partner total). Flat 15% cards above remain gross × 0.85.
+      </p>
+      {data.unknownStoreGrossRevenue > 0 ? (
+        <p className="text-xs text-slate-500">
+          Unknown store gross {formatInr(data.unknownStoreGrossRevenue)} (net{' '}
+          {formatInr(data.unknownStoreNetRevenue)})
+        </p>
+      ) : null}
     </div>
   )
 }

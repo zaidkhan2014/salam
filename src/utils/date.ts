@@ -1,5 +1,3 @@
-import { formatISO } from 'date-fns'
-
 const DEFAULT_RANGE_DAYS = 7
 
 export function toUtcIso(value: string) {
@@ -17,8 +15,8 @@ export function defaultDateRange() {
   const end = new Date()
   const start = new Date(end.getTime() - DEFAULT_RANGE_DAYS * 24 * 60 * 60 * 1000)
   return {
-    start: formatISO(start),
-    end: formatISO(end),
+    start: start.toISOString(),
+    end: end.toISOString(),
   }
 }
 
