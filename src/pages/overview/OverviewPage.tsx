@@ -20,7 +20,7 @@ export default function OverviewPage() {
         granularity={filters.granularity}
         onChange={setFilters}
       />
-      <MetricsSection query={query} />
+      <MetricsSection query={query} excludeUnknownPlatform />
 
       <div className="space-y-3 border-t border-slate-200 pt-6">
         <h2 className="text-lg font-semibold text-slate-900">Gender monitoring</h2>

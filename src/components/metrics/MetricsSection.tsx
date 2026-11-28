@@ -6,8 +6,15 @@ import { MetricBreakdownList } from '@/components/metrics/MetricBreakdownList'
 import { MetricCard } from '@/components/metrics/MetricCard'
 import { MetricSeriesChart } from '@/components/metrics/MetricSeriesChart'
 import { Skeleton } from '@/components/ui/skeleton'
+import { filterUnknownPlatformMetrics } from '@/utils/overviewMetrics'
 
-export function MetricsSection({ query }: { query: UseQueryResult<AdminMetricsResponse, Error> }) {
+interface MetricsSectionProps {
+  query: UseQueryResult<AdminMetricsResponse, Error>
+  /** When true, hide Unknown-platform onboarding cards/charts and UNKNOWN breakdown rows. */
+  excludeUnknownPlatform?: boolean
+}
+
+export function MetricsSection({ query, excludeUnknownPlatform = false }: MetricsSectionProps) {
   if (query.isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -22,7 +29,8 @@ export function MetricsSection({ query }: { query: UseQueryResult<AdminMetricsRe
     return <QueryFeedback loading={false} error={query.error} onRetry={() => void query.refetch()} />
   }
 
-  const metrics = query.data?.metrics ?? []
+  const rawMetrics = query.data?.metrics ?? []
+  const metrics = excludeUnknownPlatform ? filterUnknownPlatformMetrics(rawMetrics) : rawMetrics
   if (!metrics.length) {
     return <EmptyState title="No metrics found." subtitle="Try changing the date range or granularity." />
   }
